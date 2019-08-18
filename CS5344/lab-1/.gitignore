@@ -1,0 +1,6 @@
+.idea
+.idea/*
+target/*
+.DS_store
+project/*
+!project/assembly.sbt
