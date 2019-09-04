@@ -1,11 +1,11 @@
-name := "lab-1"
+name := "lab-2"
 version := "0.1"
 scalaVersion := "2.11.12"
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= {
-  var sparkVersion = "2.1.1"
+  var sparkVersion = "2.4.4"
   Seq(
     "org.apache.spark" %% "spark-core" % sparkVersion,
     "org.apache.spark" %% "spark-sql" % sparkVersion,

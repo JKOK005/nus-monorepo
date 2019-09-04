@@ -1,2 +1,3 @@
 project/*
 !project/assembly.sbt
+metastore_db/
