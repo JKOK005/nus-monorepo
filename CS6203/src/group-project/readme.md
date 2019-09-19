@@ -13,3 +13,7 @@ CGO_LDFLAGS="-L/path/to/rocksdb -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4 
 go get github.com/tecbot/gorocksdb
 ```
 
+### Generate protobuf file via:
+```proto
+protoc -I Protobuf/Template/ --go_out=plugins=grpc:Protobuf/Generate Protobuf/Template/messages.proto 
+```
