@@ -1,6 +1,27 @@
 syntax = "proto3";
 package message;
 
+// Commons
+message nodeOperations {
+    enum operation {
+        JOIN    = 0; // Denotes operations that happen to a node. A node can either leave or join the cluster.
+        REMOVE  = 1;
+    }
+    operation op = 1;
+    nodeProperties node = 2;
+}
+
+message logContents {
+    uint32 index = 1;
+    string signature = 2; // Hash sum of the log for quick comparison of logs
+    nodeOperations op = 3;
+}
+
+message nodeProperties {
+    string address  = 2;
+    uint32 port     = 3;
+}
+
 // Voting protocol
 message RequestForVoteMsg {
     uint32 candidateTerm = 1;
@@ -29,37 +50,28 @@ service heartbeatService {
     rpc RequestVote(RequestForVoteMsg) returns (RequestForVoteReply);
 }
 
+// Pre-seeding protocol
+message InitializationMs {}
+
+message InitializationResp {
+
+}
+
 // Log synchronization protocol
-message nodeOperations {
-    enum operation {
-        JOIN    = 0; // Denotes operations that happen to a node. A node can either leave or join the cluster.
-        REMOVE  = 1;
-    }
-    operation op    = 1;
-    string address  = 2;
-    uint32 port     = 3;
-}
-
-message logContents {
-    uint32 index = 1;
-    string signature = 2; // Hash sum of the log for quick comparison of logs
-    nodeOperations op = 3;
-}
-
-message synchronizeMsg {
+message SynchronizeMsg {
     uint32 index = 1;
     string signature = 2;
 }
 
-message synchronizeResp {
+message SynchronizeResp {
     bool ack = 1; // If ack = False, the logs are not synchronized as of received index.
 }
 
-message logOverrideMsg {
+message LogOverrideMsg {
     uint32 startIndex = 1; // Starting index to override log file
     repeated logContents payload = 2;
 }
 
-message logOverrideResp {
+message LogOverrideResp {
     bool ack = 1;
 }
