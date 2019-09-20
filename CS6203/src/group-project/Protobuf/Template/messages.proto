@@ -53,9 +53,7 @@ service heartbeatService {
 // Pre-seeding protocol
 message InitializationMs {}
 
-message InitializationResp {
-
-}
+message InitializationResp {}
 
 // Log synchronization protocol
 message SynchronizeMsg {
