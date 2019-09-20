@@ -1,1 +1,4 @@
 bin/*
+pkg/*
+src/*
+!src/group-project

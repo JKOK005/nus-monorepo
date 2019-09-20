@@ -61,6 +61,14 @@ func (r *RocksDbClient) Put(key string, val []byte) error {
 	}
 }
 
+func (r *RocksDbClient) Exists(key string) (bool, error) {
+	if val, err := r.Get(key); err != nil {
+		return false, err
+	} else {
+		return len(val) > 0, nil
+	}
+}
+
 func (r *RocksDbClient) PutImmutable(key string, val []byte) error {
 	/*
 		Sets key from rocks DB connection. First asserts immutability of keys.

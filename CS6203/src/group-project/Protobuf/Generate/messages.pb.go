@@ -46,7 +46,157 @@ func (x NodeOperationsOperation) String() string {
 }
 
 func (NodeOperationsOperation) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{4, 0}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{0, 0}
+}
+
+// Commons
+type NodeOperations struct {
+	Op                   NodeOperationsOperation `protobuf:"varint,1,opt,name=op,proto3,enum=message.NodeOperationsOperation" json:"op,omitempty"`
+	Node                 *NodeProperties         `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *NodeOperations) Reset()         { *m = NodeOperations{} }
+func (m *NodeOperations) String() string { return proto.CompactTextString(m) }
+func (*NodeOperations) ProtoMessage()    {}
+func (*NodeOperations) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{0}
+}
+
+func (m *NodeOperations) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeOperations.Unmarshal(m, b)
+}
+func (m *NodeOperations) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeOperations.Marshal(b, m, deterministic)
+}
+func (m *NodeOperations) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeOperations.Merge(m, src)
+}
+func (m *NodeOperations) XXX_Size() int {
+	return xxx_messageInfo_NodeOperations.Size(m)
+}
+func (m *NodeOperations) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeOperations.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeOperations proto.InternalMessageInfo
+
+func (m *NodeOperations) GetOp() NodeOperationsOperation {
+	if m != nil {
+		return m.Op
+	}
+	return NodeOperations_JOIN
+}
+
+func (m *NodeOperations) GetNode() *NodeProperties {
+	if m != nil {
+		return m.Node
+	}
+	return nil
+}
+
+type LogContents struct {
+	Index                uint32          `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Signature            string          `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+	Op                   *NodeOperations `protobuf:"bytes,3,opt,name=op,proto3" json:"op,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *LogContents) Reset()         { *m = LogContents{} }
+func (m *LogContents) String() string { return proto.CompactTextString(m) }
+func (*LogContents) ProtoMessage()    {}
+func (*LogContents) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{1}
+}
+
+func (m *LogContents) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LogContents.Unmarshal(m, b)
+}
+func (m *LogContents) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LogContents.Marshal(b, m, deterministic)
+}
+func (m *LogContents) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LogContents.Merge(m, src)
+}
+func (m *LogContents) XXX_Size() int {
+	return xxx_messageInfo_LogContents.Size(m)
+}
+func (m *LogContents) XXX_DiscardUnknown() {
+	xxx_messageInfo_LogContents.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LogContents proto.InternalMessageInfo
+
+func (m *LogContents) GetIndex() uint32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *LogContents) GetSignature() string {
+	if m != nil {
+		return m.Signature
+	}
+	return ""
+}
+
+func (m *LogContents) GetOp() *NodeOperations {
+	if m != nil {
+		return m.Op
+	}
+	return nil
+}
+
+type NodeProperties struct {
+	Address              string   `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Port                 uint32   `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NodeProperties) Reset()         { *m = NodeProperties{} }
+func (m *NodeProperties) String() string { return proto.CompactTextString(m) }
+func (*NodeProperties) ProtoMessage()    {}
+func (*NodeProperties) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{2}
+}
+
+func (m *NodeProperties) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeProperties.Unmarshal(m, b)
+}
+func (m *NodeProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeProperties.Marshal(b, m, deterministic)
+}
+func (m *NodeProperties) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeProperties.Merge(m, src)
+}
+func (m *NodeProperties) XXX_Size() int {
+	return xxx_messageInfo_NodeProperties.Size(m)
+}
+func (m *NodeProperties) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeProperties.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeProperties proto.InternalMessageInfo
+
+func (m *NodeProperties) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *NodeProperties) GetPort() uint32 {
+	if m != nil {
+		return m.Port
+	}
+	return 0
 }
 
 // Voting protocol
@@ -62,7 +212,7 @@ func (m *RequestForVoteMsg) Reset()         { *m = RequestForVoteMsg{} }
 func (m *RequestForVoteMsg) String() string { return proto.CompactTextString(m) }
 func (*RequestForVoteMsg) ProtoMessage()    {}
 func (*RequestForVoteMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{0}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{3}
 }
 
 func (m *RequestForVoteMsg) XXX_Unmarshal(b []byte) error {
@@ -108,7 +258,7 @@ func (m *RequestForVoteReply) Reset()         { *m = RequestForVoteReply{} }
 func (m *RequestForVoteReply) String() string { return proto.CompactTextString(m) }
 func (*RequestForVoteReply) ProtoMessage()    {}
 func (*RequestForVoteReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{1}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{4}
 }
 
 func (m *RequestForVoteReply) XXX_Unmarshal(b []byte) error {
@@ -149,7 +299,7 @@ func (m *HeartBeatMsg) Reset()         { *m = HeartBeatMsg{} }
 func (m *HeartBeatMsg) String() string { return proto.CompactTextString(m) }
 func (*HeartBeatMsg) ProtoMessage()    {}
 func (*HeartBeatMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{2}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{5}
 }
 
 func (m *HeartBeatMsg) XXX_Unmarshal(b []byte) error {
@@ -195,7 +345,7 @@ func (m *HeartBeatResp) Reset()         { *m = HeartBeatResp{} }
 func (m *HeartBeatResp) String() string { return proto.CompactTextString(m) }
 func (*HeartBeatResp) ProtoMessage()    {}
 func (*HeartBeatResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{3}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{6}
 }
 
 func (m *HeartBeatResp) XXX_Unmarshal(b []byte) error {
@@ -223,117 +373,70 @@ func (m *HeartBeatResp) GetAck() bool {
 	return false
 }
 
+// Pre-seeding protocol
+type InitializationMs struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *InitializationMs) Reset()         { *m = InitializationMs{} }
+func (m *InitializationMs) String() string { return proto.CompactTextString(m) }
+func (*InitializationMs) ProtoMessage()    {}
+func (*InitializationMs) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{7}
+}
+
+func (m *InitializationMs) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InitializationMs.Unmarshal(m, b)
+}
+func (m *InitializationMs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InitializationMs.Marshal(b, m, deterministic)
+}
+func (m *InitializationMs) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InitializationMs.Merge(m, src)
+}
+func (m *InitializationMs) XXX_Size() int {
+	return xxx_messageInfo_InitializationMs.Size(m)
+}
+func (m *InitializationMs) XXX_DiscardUnknown() {
+	xxx_messageInfo_InitializationMs.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InitializationMs proto.InternalMessageInfo
+
+type InitializationResp struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *InitializationResp) Reset()         { *m = InitializationResp{} }
+func (m *InitializationResp) String() string { return proto.CompactTextString(m) }
+func (*InitializationResp) ProtoMessage()    {}
+func (*InitializationResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{8}
+}
+
+func (m *InitializationResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InitializationResp.Unmarshal(m, b)
+}
+func (m *InitializationResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InitializationResp.Marshal(b, m, deterministic)
+}
+func (m *InitializationResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InitializationResp.Merge(m, src)
+}
+func (m *InitializationResp) XXX_Size() int {
+	return xxx_messageInfo_InitializationResp.Size(m)
+}
+func (m *InitializationResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_InitializationResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InitializationResp proto.InternalMessageInfo
+
 // Log synchronization protocol
-type NodeOperations struct {
-	Op                   NodeOperationsOperation `protobuf:"varint,1,opt,name=op,proto3,enum=message.NodeOperationsOperation" json:"op,omitempty"`
-	Address              string                  `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	Port                 uint32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
-	XXX_unrecognized     []byte                  `json:"-"`
-	XXX_sizecache        int32                   `json:"-"`
-}
-
-func (m *NodeOperations) Reset()         { *m = NodeOperations{} }
-func (m *NodeOperations) String() string { return proto.CompactTextString(m) }
-func (*NodeOperations) ProtoMessage()    {}
-func (*NodeOperations) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{4}
-}
-
-func (m *NodeOperations) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_NodeOperations.Unmarshal(m, b)
-}
-func (m *NodeOperations) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_NodeOperations.Marshal(b, m, deterministic)
-}
-func (m *NodeOperations) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NodeOperations.Merge(m, src)
-}
-func (m *NodeOperations) XXX_Size() int {
-	return xxx_messageInfo_NodeOperations.Size(m)
-}
-func (m *NodeOperations) XXX_DiscardUnknown() {
-	xxx_messageInfo_NodeOperations.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_NodeOperations proto.InternalMessageInfo
-
-func (m *NodeOperations) GetOp() NodeOperationsOperation {
-	if m != nil {
-		return m.Op
-	}
-	return NodeOperations_JOIN
-}
-
-func (m *NodeOperations) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
-func (m *NodeOperations) GetPort() uint32 {
-	if m != nil {
-		return m.Port
-	}
-	return 0
-}
-
-type LogContents struct {
-	Index                uint32          `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
-	Signature            string          `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
-	Op                   *NodeOperations `protobuf:"bytes,3,opt,name=op,proto3" json:"op,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
-}
-
-func (m *LogContents) Reset()         { *m = LogContents{} }
-func (m *LogContents) String() string { return proto.CompactTextString(m) }
-func (*LogContents) ProtoMessage()    {}
-func (*LogContents) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{5}
-}
-
-func (m *LogContents) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LogContents.Unmarshal(m, b)
-}
-func (m *LogContents) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LogContents.Marshal(b, m, deterministic)
-}
-func (m *LogContents) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LogContents.Merge(m, src)
-}
-func (m *LogContents) XXX_Size() int {
-	return xxx_messageInfo_LogContents.Size(m)
-}
-func (m *LogContents) XXX_DiscardUnknown() {
-	xxx_messageInfo_LogContents.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_LogContents proto.InternalMessageInfo
-
-func (m *LogContents) GetIndex() uint32 {
-	if m != nil {
-		return m.Index
-	}
-	return 0
-}
-
-func (m *LogContents) GetSignature() string {
-	if m != nil {
-		return m.Signature
-	}
-	return ""
-}
-
-func (m *LogContents) GetOp() *NodeOperations {
-	if m != nil {
-		return m.Op
-	}
-	return nil
-}
-
 type SynchronizeMsg struct {
 	Index                uint32   `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
 	Signature            string   `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
@@ -346,7 +449,7 @@ func (m *SynchronizeMsg) Reset()         { *m = SynchronizeMsg{} }
 func (m *SynchronizeMsg) String() string { return proto.CompactTextString(m) }
 func (*SynchronizeMsg) ProtoMessage()    {}
 func (*SynchronizeMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{6}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
 }
 
 func (m *SynchronizeMsg) XXX_Unmarshal(b []byte) error {
@@ -392,7 +495,7 @@ func (m *SynchronizeResp) Reset()         { *m = SynchronizeResp{} }
 func (m *SynchronizeResp) String() string { return proto.CompactTextString(m) }
 func (*SynchronizeResp) ProtoMessage()    {}
 func (*SynchronizeResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{7}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
 }
 
 func (m *SynchronizeResp) XXX_Unmarshal(b []byte) error {
@@ -432,7 +535,7 @@ func (m *LogOverrideMsg) Reset()         { *m = LogOverrideMsg{} }
 func (m *LogOverrideMsg) String() string { return proto.CompactTextString(m) }
 func (*LogOverrideMsg) ProtoMessage()    {}
 func (*LogOverrideMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{8}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
 }
 
 func (m *LogOverrideMsg) XXX_Unmarshal(b []byte) error {
@@ -478,7 +581,7 @@ func (m *LogOverrideResp) Reset()         { *m = LogOverrideResp{} }
 func (m *LogOverrideResp) String() string { return proto.CompactTextString(m) }
 func (*LogOverrideResp) ProtoMessage()    {}
 func (*LogOverrideResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
 }
 
 func (m *LogOverrideResp) XXX_Unmarshal(b []byte) error {
@@ -508,50 +611,56 @@ func (m *LogOverrideResp) GetAck() bool {
 
 func init() {
 	proto.RegisterEnum("message.NodeOperationsOperation", NodeOperationsOperation_name, NodeOperationsOperation_value)
+	proto.RegisterType((*NodeOperations)(nil), "message.nodeOperations")
+	proto.RegisterType((*LogContents)(nil), "message.logContents")
+	proto.RegisterType((*NodeProperties)(nil), "message.nodeProperties")
 	proto.RegisterType((*RequestForVoteMsg)(nil), "message.RequestForVoteMsg")
 	proto.RegisterType((*RequestForVoteReply)(nil), "message.RequestForVoteReply")
 	proto.RegisterType((*HeartBeatMsg)(nil), "message.HeartBeatMsg")
 	proto.RegisterType((*HeartBeatResp)(nil), "message.HeartBeatResp")
-	proto.RegisterType((*NodeOperations)(nil), "message.nodeOperations")
-	proto.RegisterType((*LogContents)(nil), "message.logContents")
-	proto.RegisterType((*SynchronizeMsg)(nil), "message.synchronizeMsg")
-	proto.RegisterType((*SynchronizeResp)(nil), "message.synchronizeResp")
-	proto.RegisterType((*LogOverrideMsg)(nil), "message.logOverrideMsg")
-	proto.RegisterType((*LogOverrideResp)(nil), "message.logOverrideResp")
+	proto.RegisterType((*InitializationMs)(nil), "message.InitializationMs")
+	proto.RegisterType((*InitializationResp)(nil), "message.InitializationResp")
+	proto.RegisterType((*SynchronizeMsg)(nil), "message.SynchronizeMsg")
+	proto.RegisterType((*SynchronizeResp)(nil), "message.SynchronizeResp")
+	proto.RegisterType((*LogOverrideMsg)(nil), "message.LogOverrideMsg")
+	proto.RegisterType((*LogOverrideResp)(nil), "message.LogOverrideResp")
 }
 
 func init() { proto.RegisterFile("messages.proto", fileDescriptor_4dc296cbfe5ffcd5) }
 
 var fileDescriptor_4dc296cbfe5ffcd5 = []byte{
-	// 445 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x93, 0x51, 0x6f, 0xd3, 0x30,
-	0x10, 0xc7, 0x69, 0x3b, 0xd6, 0xf5, 0x42, 0x43, 0x31, 0x93, 0x88, 0xa6, 0x09, 0xb5, 0x01, 0x69,
-	0x7b, 0x8a, 0x44, 0xf8, 0x06, 0xc0, 0x80, 0x21, 0xb6, 0x4a, 0x06, 0x0d, 0x24, 0x5e, 0xf0, 0x9a,
-	0x53, 0x1a, 0xc8, 0x7c, 0xc1, 0xbe, 0x55, 0x94, 0xcf, 0xc1, 0x07, 0x46, 0x36, 0x69, 0x97, 0x88,
-	0x96, 0x07, 0xc4, 0x9b, 0xef, 0x72, 0xf9, 0xff, 0xfe, 0x77, 0x3e, 0x43, 0x78, 0x85, 0xd6, 0xaa,
-	0x1c, 0x6d, 0x52, 0x19, 0x62, 0x12, 0xfd, 0x3a, 0x8e, 0x3f, 0xc0, 0x3d, 0x89, 0xdf, 0xae, 0xd1,
-	0xf2, 0x4b, 0x32, 0x17, 0xc4, 0x78, 0x66, 0x73, 0xf1, 0x18, 0x86, 0x33, 0xa5, 0xb3, 0x22, 0x53,
-	0x8c, 0xef, 0xd1, 0x5c, 0x45, 0x9d, 0x71, 0xe7, 0x78, 0x28, 0xdb, 0x49, 0x71, 0x08, 0x83, 0x92,
-	0xf2, 0xb7, 0xa8, 0x73, 0x9e, 0x47, 0x5d, 0x5f, 0x71, 0x93, 0x88, 0x8f, 0xe0, 0x7e, 0x5b, 0x58,
-	0x62, 0x55, 0x2e, 0xc5, 0x08, 0x7a, 0x6a, 0xf6, 0xd5, 0x0b, 0xee, 0x49, 0x77, 0x8c, 0xcf, 0xe1,
-	0xce, 0x6b, 0x54, 0x86, 0x9f, 0xa1, 0x62, 0x07, 0x1f, 0x43, 0x50, 0x2a, 0x46, 0xcb, 0xa7, 0x3a,
-	0xc3, 0xef, 0x35, 0xba, 0x99, 0x72, 0x60, 0x5b, 0xe4, 0x5a, 0xf1, 0xb5, 0x41, 0x0f, 0x1e, 0xc8,
-	0x9b, 0x44, 0x3c, 0x81, 0xe1, 0x5a, 0x4f, 0xa2, 0xad, 0x36, 0x20, 0x7f, 0x76, 0x20, 0xd4, 0x94,
-	0xe1, 0xb4, 0x42, 0xa3, 0xb8, 0x20, 0x6d, 0xc5, 0x13, 0xe8, 0x52, 0xe5, 0x6b, 0xc2, 0x74, 0x92,
-	0xd4, 0xd3, 0x49, 0xda, 0x45, 0x09, 0xad, 0x8e, 0xb2, 0x4b, 0x95, 0x88, 0xa0, 0xaf, 0xb2, 0xcc,
-	0xa0, 0xb5, 0xb5, 0x89, 0x55, 0x28, 0x04, 0xec, 0x54, 0x64, 0x38, 0xea, 0x79, 0xef, 0xfe, 0x1c,
-	0x4f, 0x60, 0xb0, 0xfe, 0x5d, 0xec, 0xc1, 0xce, 0x9b, 0xe9, 0xe9, 0xf9, 0xe8, 0x96, 0x00, 0xd8,
-	0x95, 0x27, 0x67, 0xd3, 0x8b, 0x93, 0x51, 0x27, 0xfe, 0x02, 0x41, 0x49, 0xf9, 0x73, 0xd2, 0x8c,
-	0x9a, 0xad, 0xd8, 0x87, 0xdb, 0x45, 0x63, 0x04, 0xbf, 0x83, 0xbf, 0x37, 0x2f, 0x8e, 0x7c, 0x1b,
-	0x8e, 0x1b, 0xa4, 0x0f, 0xb6, 0xb4, 0xe1, 0xcc, 0xc7, 0x2f, 0x20, 0xb4, 0x4b, 0x3d, 0x9b, 0x1b,
-	0xd2, 0xc5, 0x0f, 0x7f, 0xe9, 0xff, 0x80, 0x8b, 0x1f, 0xc1, 0xdd, 0x86, 0xca, 0x96, 0x69, 0x7f,
-	0x86, 0xb0, 0xa4, 0x7c, 0xba, 0x40, 0x63, 0x8a, 0xcc, 0xa3, 0x1e, 0x02, 0x58, 0x56, 0xa6, 0x75,
-	0xc3, 0x8d, 0x8c, 0x48, 0xa0, 0x5f, 0xa9, 0x65, 0x49, 0x2a, 0x8b, 0xba, 0xe3, 0xde, 0x71, 0x90,
-	0xee, 0xaf, 0x5b, 0x69, 0x0c, 0x48, 0xae, 0x8a, 0x9c, 0x8d, 0x06, 0x61, 0xb3, 0x8d, 0xf4, 0x23,
-	0x0c, 0x17, 0xc4, 0x85, 0xce, 0xdf, 0xa1, 0x59, 0x14, 0x33, 0x14, 0xaf, 0x20, 0xa8, 0x37, 0xd4,
-	0xad, 0xa7, 0x38, 0x58, 0x33, 0xfe, 0x78, 0x10, 0x07, 0x87, 0x5b, 0xbe, 0xf9, 0x9d, 0x4e, 0x3f,
-	0xc1, 0x68, 0xee, 0x36, 0xee, 0x12, 0x15, 0xff, 0x6f, 0xf1, 0xcb, 0x5d, 0xff, 0x60, 0x9f, 0xfe,
-	0x0a, 0x00, 0x00, 0xff, 0xff, 0xac, 0xb0, 0xd1, 0xd3, 0xc2, 0x03, 0x00, 0x00,
+	// 492 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x5d, 0x6f, 0xd3, 0x30,
+	0x14, 0xa5, 0x1f, 0xac, 0xeb, 0x2d, 0x29, 0xc1, 0x54, 0xa2, 0x9a, 0x26, 0xd4, 0x1a, 0xa4, 0x55,
+	0x42, 0x8a, 0x44, 0x78, 0xe7, 0x01, 0x18, 0x50, 0xb4, 0xae, 0xc8, 0x43, 0x03, 0x89, 0x17, 0xbc,
+	0xe6, 0x2a, 0x35, 0x64, 0x76, 0xb0, 0xbd, 0x8a, 0xee, 0x6f, 0xf0, 0x87, 0x91, 0xdd, 0xb4, 0x4d,
+	0x44, 0xc7, 0x03, 0xda, 0x9b, 0x7d, 0x72, 0x7d, 0xce, 0xb9, 0xe7, 0x5e, 0x05, 0xba, 0x97, 0x68,
+	0x0c, 0x4f, 0xd1, 0x44, 0xb9, 0x56, 0x56, 0x91, 0x56, 0x71, 0xa7, 0xbf, 0x6b, 0xd0, 0x95, 0x2a,
+	0xc1, 0x69, 0x8e, 0x9a, 0x5b, 0xa1, 0xa4, 0x21, 0xcf, 0xa1, 0xae, 0xf2, 0x7e, 0x6d, 0x50, 0x1b,
+	0x75, 0xe3, 0x61, 0x54, 0x14, 0x46, 0xd5, 0xa2, 0x48, 0xad, 0x8f, 0xac, 0xae, 0x72, 0xf2, 0x0c,
+	0x9a, 0xee, 0x7b, 0xbf, 0x3e, 0xa8, 0x8d, 0x3a, 0xf1, 0xa3, 0xca, 0xa3, 0x8f, 0xda, 0xd5, 0x5a,
+	0x81, 0x86, 0xf9, 0x22, 0x3a, 0x84, 0xf6, 0xe6, 0x35, 0xd9, 0x87, 0xe6, 0x87, 0xe9, 0xf8, 0x34,
+	0xbc, 0x43, 0x00, 0xf6, 0xd8, 0xf1, 0x64, 0x7a, 0x7e, 0x1c, 0xd6, 0xe8, 0x77, 0xe8, 0x64, 0x2a,
+	0x7d, 0xad, 0xa4, 0x45, 0x69, 0x0d, 0xe9, 0xc1, 0x5d, 0x21, 0x13, 0xfc, 0xe5, 0x4d, 0x05, 0x6c,
+	0x75, 0x21, 0x87, 0xd0, 0x36, 0x22, 0x95, 0xdc, 0x5e, 0xe9, 0x95, 0x72, 0x9b, 0x6d, 0x01, 0x72,
+	0xe4, 0xbb, 0x68, 0xec, 0x30, 0xb4, 0xed, 0xc2, 0x79, 0xa7, 0x2f, 0x57, 0x01, 0x6c, 0x6d, 0x92,
+	0x3e, 0xb4, 0x78, 0x92, 0x68, 0x34, 0xa6, 0xa0, 0x5d, 0x5f, 0x09, 0x81, 0x66, 0xae, 0xb4, 0xf5,
+	0xb4, 0x01, 0xf3, 0x67, 0xfa, 0x19, 0x1e, 0x30, 0xfc, 0x79, 0x85, 0xc6, 0xbe, 0x55, 0xfa, 0x5c,
+	0x59, 0x9c, 0x98, 0x94, 0x3c, 0x85, 0x60, 0xc6, 0x65, 0x22, 0x12, 0x6e, 0xf1, 0x13, 0xea, 0xcb,
+	0xc2, 0x79, 0x15, 0x74, 0x1d, 0x64, 0x2a, 0x3d, 0x41, 0x99, 0xda, 0xb9, 0x97, 0x0a, 0xd8, 0x16,
+	0xa0, 0x47, 0xf0, 0xb0, 0x4a, 0xcc, 0x30, 0xcf, 0x96, 0x24, 0x84, 0x06, 0x9f, 0xfd, 0xf0, 0x84,
+	0xfb, 0xcc, 0x1d, 0xe9, 0x29, 0xdc, 0x7b, 0x8f, 0x5c, 0xdb, 0x57, 0xc8, 0xad, 0x13, 0x1f, 0x40,
+	0x27, 0xe3, 0x16, 0x8d, 0x1d, 0x97, 0x42, 0x2b, 0x43, 0xff, 0x8e, 0x8e, 0x0e, 0x21, 0xd8, 0xf0,
+	0x31, 0x34, 0xf9, 0x0e, 0x49, 0x02, 0xe1, 0x58, 0x0a, 0x2b, 0x78, 0x26, 0xae, 0x7d, 0x96, 0x13,
+	0x43, 0x7b, 0x40, 0xaa, 0x98, 0x7b, 0x4b, 0xdf, 0x40, 0xf7, 0x6c, 0x29, 0x67, 0x73, 0xad, 0xa4,
+	0xb8, 0xf6, 0xd9, 0xfc, 0xc7, 0x34, 0xe9, 0x13, 0xb8, 0x5f, 0x62, 0xb9, 0xc1, 0xd4, 0x37, 0xe8,
+	0x9e, 0xa8, 0x74, 0xba, 0x40, 0xad, 0x45, 0xe2, 0xa5, 0x1e, 0x03, 0x18, 0xcb, 0x75, 0x25, 0x88,
+	0x12, 0x42, 0x22, 0x68, 0xe5, 0x7c, 0x99, 0x29, 0x9e, 0xf4, 0xeb, 0x83, 0xc6, 0xa8, 0x13, 0xf7,
+	0x36, 0x9b, 0x52, 0xda, 0x3f, 0xb6, 0x2e, 0x72, 0x36, 0x4a, 0x0a, 0xbb, 0x6d, 0xc4, 0x5f, 0x20,
+	0x58, 0x28, 0x2b, 0x64, 0x7a, 0x86, 0x7a, 0x21, 0x66, 0x48, 0xde, 0x41, 0xa7, 0x18, 0xa4, 0x9b,
+	0x22, 0x39, 0xd8, 0x68, 0xfc, 0xb5, 0x37, 0x07, 0x87, 0x37, 0x7c, 0xf3, 0xa3, 0x8f, 0xbf, 0x42,
+	0x38, 0x77, 0x83, 0xb9, 0x40, 0x6e, 0x6f, 0x9b, 0xfc, 0x62, 0xcf, 0xff, 0x19, 0x5e, 0xfc, 0x09,
+	0x00, 0x00, 0xff, 0xff, 0x0c, 0x52, 0xa3, 0x7e, 0x2b, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
