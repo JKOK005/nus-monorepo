@@ -5,7 +5,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import commons.Utils
 import java.io.File
-
 import scala.collection.mutable.ListBuffer
 
 object part1 extends App {
@@ -13,6 +12,8 @@ object part1 extends App {
     val sparkConfig = new SparkConf().setAppName(applicationName)
     SparkSession.builder().config(sparkConfig).enableHiveSupport().getOrCreate()
   }
+
+  def getMin = udf((arr: Seq[Long]) => arr.min)
 
   implicit val spark: SparkSession = initSparkContext("CS5344-lab-3-part-1")
 
@@ -39,8 +40,10 @@ object part1 extends App {
 
   val finalDf = allAggregatedDfLst.reduce(_.union(_))
                                   .groupBy("col")
-                                  .min("count")
-                                  .orderBy(desc("min(count)"))
+                                  .agg(collect_list("count") as "counts")
+                                  .filter(size(col("counts")) === dataFilePtr.listFiles.length)
+                                  .withColumn("min_count", getMin(col("counts")))
+                                  .orderBy(desc("min_count")).select("col", "min_count")
 
   finalDf.coalesce(1)
           .write
