@@ -49,27 +49,3 @@ message HeartBeatResp {
 service heartbeatService {
     rpc RequestVote(RequestForVoteMsg) returns (RequestForVoteReply);
 }
-
-// Pre-seeding protocol
-message InitializationMs {}
-
-message InitializationResp {}
-
-// Log synchronization protocol
-message SynchronizeMsg {
-    uint32 index = 1;
-    string signature = 2;
-}
-
-message SynchronizeResp {
-    bool ack = 1; // If ack = False, the logs are not synchronized as of received index.
-}
-
-message LogOverrideMsg {
-    uint32 startIndex = 1; // Starting index to override log file
-    repeated logContents payload = 2;
-}
-
-message LogOverrideResp {
-    bool ack = 1;
-}
