@@ -29,12 +29,12 @@ func (e *ElectionManager) setCandidateState(state candiddateState) {e.State = st
 func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
 
 func (e *ElectionManager) setTermNo(no uint32) bool {
+	glog.Info("Term no set to: ", no)
 	e.TermNo = no % math.MaxUint32
 	return true
 }
 
 func (e *ElectionManager) Start() {
-	//loopStartTimeMs := time.Now().Nanosecond() / 1000000
 	for {
 		select {
 		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
@@ -59,7 +59,4 @@ func (e *ElectionManager) Start() {
 			}
 		}
 	}
-	//sleepTime := int(e.cycleTimeMs) + loopStartTimeMs - (time.Now().Nanosecond() / 1000000)
-	//glog.Infof("ElectionManager: Sleeping for %d ms", sleepTime)
-	//time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 }

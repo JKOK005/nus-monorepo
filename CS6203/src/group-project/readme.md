@@ -17,3 +17,8 @@ go get github.com/tecbot/gorocksdb
 ```proto
 protoc -I Protobuf/Template/ --go_out=plugins=grpc:Protobuf/Generate Protobuf/Template/raft.proto 
 ```
+
+### Excute code via
+```shell script
+go run main.go --stderrthreshold=INFO
+```
