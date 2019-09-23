@@ -15,5 +15,5 @@ go get github.com/tecbot/gorocksdb
 
 ### Generate protobuf file via:
 ```proto
-protoc -I Protobuf/Template/ --go_out=plugins=grpc:Protobuf/Generate Protobuf/Template/messages.proto 
+protoc -I Protobuf/Template/ --go_out=plugins=grpc:Protobuf/Generate Protobuf/Template/raft.proto 
 ```

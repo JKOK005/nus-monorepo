@@ -16,7 +16,7 @@ service votingService {
 
 // RAFT Heartbeat protocol
 message HeartBeatMsg {
-    uint32 candidateTerm = 1;
+    uint32 termNo = 1;
 }
 
 message HeartBeatResp {
