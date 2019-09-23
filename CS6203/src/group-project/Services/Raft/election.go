@@ -1,7 +1,6 @@
 package Raft
 
 import (
-	"errors"
 	"github.com/golang/glog"
 	"group-project/Utils"
 	"math"
@@ -11,54 +10,52 @@ import (
 type candiddateState uint8
 
 type ElectionManager struct {
-	baseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
-	termNo 			uint32					// Present term number
-	cycleNo 		uint32					// Present cycle number
-	cyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo
-	cycleTimeMs 	uint32 					// Cycle time for the start loop
-	state 			candiddateState 		// Present state
-	termNoChannel 	*Utils.TermNoChannel
+	BaseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
+	TermNo 			uint32					// Present term number
+	CycleNo 		uint32					// Present cycle number
+	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo
+	CycleTimeMs 	uint32 					// Cycle time for the start loop
+	State 			candiddateState 		// Present state
+	TermNoChannel 	*Utils.TermNoChannel
 }
 
 const (
-	follower 	candiddateState = 0
-	candidate 	candiddateState = 1
-	leader 		candiddateState = 2
+	Follower 	candiddateState = 0
+	Candidate 	candiddateState = 1
+	Leader 		candiddateState = 2
 )
 
-func (e *ElectionManager) setCandidateState(state candiddateState) {e.state = state}
-func (e *ElectionManager) setCycleNo(no uint32) {e.cycleNo = no}
+func (e *ElectionManager) setCandidateState(state candiddateState) {e.State = state}
+func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
 
 func (e *ElectionManager) setTermNo(no uint32) bool {
-	e.termNo = no % math.MaxUint32
+	e.TermNo = no % math.MaxUint32
 	return true
 }
 
-func (e *ElectionManager) Start() error {
+func (e *ElectionManager) Start() {
 	//loopStartTimeMs := time.Now().Nanosecond() / 1000000
 	for {
 		select {
-		case <- time.NewTicker(time.Duration(e.cycleTimeMs) * time.Millisecond).C:
-			if e.state == follower {
+		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
+			if e.State == Follower {
 				select {
-				case termNo := <-e.termNoChannel.ReqCh:
-					glog.Infof("ElectionManager: Setting term to ", termNo)
+				case termNo := <-e.TermNoChannel.ReqCh:
+					glog.Infof("Setting term to ", termNo)
 					e.setCycleNo(0)
-					e.termNoChannel.RespCh <- e.setTermNo(termNo)
+					e.TermNoChannel.RespCh <- e.setTermNo(termNo)
 				default:
-					if e.cycleNo > e.cyclesToTimeout {
-						e.setTermNo(e.termNo +1) // Increments term no and transit to candidate status
-						e.setCandidateState(candidate)
+					if e.CycleNo > e.CyclesToTimeout {
+						e.setTermNo(e.TermNo +1) // Increments term no and transit to candidate status
+						e.setCandidateState(Candidate)
 					}
-					glog.Info("ElectionManager: In follower state")
+					glog.Info("In follower state")
 				}
-				e.setCycleNo(e.cycleNo +1) // Increments cycle counter in follower state
-			} else if e.state == candidate {
+				e.setCycleNo(e.CycleNo +1) // Increments cycle counter in follower state
+			} else if e.State == Candidate {
 				glog.Info("I am in candidate")
-			} else if e.state == leader {
+			} else if e.State == Leader {
 				glog.Info("I am in leader")
-			} else {
-				return errors.New("ElectionManager: state is not allowed. How did the logic end up in this statement")
 			}
 		}
 	}

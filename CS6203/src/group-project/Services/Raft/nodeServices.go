@@ -48,4 +48,5 @@ func (s *Server) ReceiveFingerTable(ctx context.Context, msg pb.FingerTableRepli
 	/*
 	Executes a request to update Finger Table
 	*/
+	return nil, nil
 }
