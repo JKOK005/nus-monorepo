@@ -1,0 +1,62 @@
+syntax = "proto3";
+package message;
+
+// RAFT Voting protocol
+message RequestForVoteMsg {
+    uint32 candidateTerm = 1;
+}
+
+message RequestForVoteReply {
+    bool ack = 1;
+}
+
+service votingService {
+    rpc RequestVote(RequestForVoteMsg) returns (RequestForVoteReply);
+}
+
+// RAFT Heartbeat protocol
+message HeartBeatMsg {
+    uint32 termNo = 1;
+}
+
+message HeartBeatResp {
+    bool ack = 1; // If ack = False, we assume that the log is not up to date and will need to synchronize logs.
+}
+
+service heartbeatService {
+    rpc HeartbeatCheck(HeartBeatMsg) returns (HeartBeatResp);
+}
+
+// Statement replication
+message StatementReplicationMsg {
+    string key  = 1;
+    bytes val   = 2;
+}
+
+message StatementReplicationResp {
+    bool ack = 1;
+}
+
+service StatementReplicationService {
+    rpc ReceiveReplication(StatementReplicationMsg) returns (StatementReplicationResp);
+}
+
+// Finger table replication
+message fingerTable {
+    uint32 keyStart  = 1;
+    uint32 keyEnd    = 2;
+    string nodeAddr  = 3;
+    uint32 nodePort  = 4;
+}
+
+message FingerTableReplicationMsg {
+    repeated fingerTable fEntries = 1;
+}
+
+message FingerTableReplicationResp {
+    bool ack = 1;
+}
+
+service FingerTableReplicationService {
+    rpc ReceiveFingerTable(FingerTableReplicationMsg) returns (FingerTableReplicationResp);
+}
