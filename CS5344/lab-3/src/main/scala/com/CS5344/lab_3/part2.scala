@@ -13,15 +13,16 @@ object part2 extends App {
     SparkSession.builder().config(sparkConfig).enableHiveSupport().getOrCreate()
   }
 
-  def getTF_IDF(df: DataFrame, dictionaryDf: DataFrame, wordCount: Long, numDoc: Int): DataFrame = {
-    df.join(dictionaryDf, df("col") === dictionaryDf("col") ,"inner")
-      .withColumn("tf_idf", (df("count") / wordCount) * (log(lit(numDoc) / dictionaryDf("count"))))
+  def getTF_IDF(df: DataFrame, dictionaryDf: DataFrame, wordCount: Long, numDoc: Long): DataFrame = {
+    df.join(dictionaryDf, df("col") === dictionaryDf("dictionary_col") ,"inner")
+      .withColumn("tf_idf", (df("count") / wordCount) * (log(lit(numDoc) / dictionaryDf("dictionary_count"))))
   }
 
   implicit val spark: SparkSession = initSparkContext("CS5344-lab-3-part-2")
 
   val dataFileDir       = "./src/main/resources/datafiles"
   val stopWordsFilePath = "./src/main/resources/stopwords.txt"
+  val queryTextPath     = "./src/main/resources/query.txt"
 
   val stopWordsDf = spark.read.textFile(stopWordsFilePath)
                                 .toDF("words")
@@ -47,9 +48,41 @@ object part2 extends App {
   val dictionaryDf = allDocDf.reduce(_.union(_))
                             .distinct
                             .groupBy("col")
-                            .count.cache
+                            .count
+                            .withColumnRenamed("col", "dictionary_col")
+                            .withColumnRenamed("count", "dictionary_count")
+                            .cache
 
   // Computes TF-IDF value of for each document
+  val TF_IDF = singleDocDf.map(
+                            eachDf => {
+                              eachDf.cache
+                              val totalWordCount  = eachDf.agg(sum("count")).first.getLong(0)
+                              getTF_IDF(eachDf, dictionaryDf, totalWordCount, dataFilePtr.listFiles.length)
+                            }
+                          )
 
+  // Normalize TF_IDF
+  val TF_IDF_norm = TF_IDF.map(
+                            eachDf => {
+                              eachDf.cache
+                              val totalWordSquared = eachDf.agg(sum(pow(col("tf_idf"), 2))).first.getDouble(0)
+                              eachDf.withColumn("tf_idf_norm", col("tf_idf") / lit(math.sqrt(totalWordSquared)))
+                            }
+                          )
 
+  // Compute relevance vector
+  val relevanceVector = TF_IDF_norm.map(
+                            eachDf => {
+                              val filtered = eachDf.filter(col("col").isin(List("wonderful","story") :_*))
+                                                    .select("tf_idf_norm")
+
+                              if (filtered.count > 0) filtered.agg(sum("tf_idf_norm")).first.getDouble(0)
+                              else 0
+                            }
+                        )
+
+  // Output to file
+  val zipped = relevanceVector zip dataFilePtr.listFiles
+  zipped.foreach { println }
 }
