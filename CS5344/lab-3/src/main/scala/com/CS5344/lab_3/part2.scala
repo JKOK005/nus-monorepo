@@ -4,7 +4,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import commons.Utils
-import java.io.File
+import java.io.{File, PrintWriter}
 import scala.collection.mutable.ListBuffer
 
 object part2 extends App {
@@ -23,6 +23,7 @@ object part2 extends App {
   val dataFileDir       = "./src/main/resources/datafiles"
   val stopWordsFilePath = "./src/main/resources/stopwords.txt"
   val queryTextPath     = "./src/main/resources/query.txt"
+  val outputFilePath    = "./src/main/resources/output/part2/out.txt"
 
   val stopWordsDf = spark.read.textFile(stopWordsFilePath)
                                 .toDF("words")
@@ -44,7 +45,12 @@ object part2 extends App {
     }
   )
 
-  // Compute dictionary of all words and the number of documents that contains them
+  /**
+    * Compute dictionary of all words and the number of documents that contains them
+    * All documents are read individually. Stop words and punctuations are removed
+    * We first take the distinct collection of words for each document
+    * We then union all documents together and generate the document count of word W, groupBy word W
+    */
   val dictionaryDf = allDocDf.reduce(_.union(_))
                             .distinct
                             .groupBy("col")
@@ -53,7 +59,13 @@ object part2 extends App {
                             .withColumnRenamed("count", "dictionary_count")
                             .cache
 
-  // Computes TF-IDF value of for each document
+  /**
+    * TF-IDF is defined as the produce of term frequency and IDF value
+    * term frequency (TF) of word W : (count of W in document) / (total words in document)
+    * IDF for word W : log((size of entire document set) / (number of documents containing W))
+    *
+    * TF-IDF = TF * IDF
+    */
   val TF_IDF = singleDocDf.map(
                             eachDf => {
                               eachDf.cache
@@ -62,7 +74,12 @@ object part2 extends App {
                             }
                           )
 
-  // Normalize TF_IDF
+  /**
+    * Normalization of all TF-IDF value for a single document
+    * For a given word W:
+    *   Compute S = sum(All [TF-IDF]^2 of words)
+    *   normalized TF-IDF = TF-IDF / sqrt(S)
+    */
   val TF_IDF_norm = TF_IDF.map(
                             eachDf => {
                               eachDf.cache
@@ -71,7 +88,12 @@ object part2 extends App {
                             }
                           )
 
-  // Compute relevance vector
+  /**
+    * Compute relevance vector for a list of query words Q
+    * This is essentially filtering the normalized TF_IDF dataframe for all rows containing words in Q
+    * We then sum up all the normalized TF_IDF values to get the relevance for the document
+    */
+
   val relevanceVector = TF_IDF_norm.map(
                             eachDf => {
                               val filtered = eachDf.filter(col("col").isin(List("wonderful","story") :_*))
@@ -82,7 +104,14 @@ object part2 extends App {
                             }
                         )
 
-  // Output to file
+  /**
+    * Write results to file
+    */
   val zipped = relevanceVector zip dataFilePtr.listFiles
-  zipped.foreach { println }
+  val file   = new File(outputFilePath)
+  file.getParentFile.mkdirs
+  file.createNewFile()
+  val writer = new PrintWriter(file)
+  zipped.foreach { i => writer.write(i.toString); writer.write("\n") }
+  writer.close
 }
