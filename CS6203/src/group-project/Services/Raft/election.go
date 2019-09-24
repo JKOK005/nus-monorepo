@@ -25,10 +25,6 @@ const (
 	Leader 		candiddateState = 2
 )
 
-var (
-	zookeeperCli *Utils.SdClient
-)
-
 func (e *ElectionManager) setCandidateState(state candiddateState) {e.State = state}
 func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
 
