@@ -35,6 +35,8 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 }
 
 func (e *ElectionManager) Start() {
+	// TODO: Assume that all new joiners start as a follower. We will need to create a path under /nodes/BaseHashGroup if it does not exist
+
 	for {
 		select {
 		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
@@ -53,7 +55,7 @@ func (e *ElectionManager) Start() {
 				}
 				e.setCycleNo(e.CycleNo +1) // Increments cycle counter in follower state
 			} else if e.State == Candidate {
-				glog.Info("I am in candidate")
+				glog.Info("In candidate state and requesting for votes")
 			} else if e.State == Leader {
 				glog.Info("I am in leader")
 			}
