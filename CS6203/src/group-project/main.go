@@ -49,7 +49,7 @@ func main () {
 	flag.Parse()  // Needed for glog
 	var wg sync.WaitGroup
 	wg.Add(1)
-	manager := &Raft.ElectionManager{ 	CycleNo: 0, CyclesToTimeout: 10, CycleTimeMs: 1000,
+	manager := &Raft.ElectionManager{ 	BaseHashGroup: 11, CycleNo: 0, CyclesToTimeout: 10, CycleTimeMs: 1000,
 										State: Raft.Follower, TermNoChannel: &dep.TermNoChannel{make(chan uint32), make(chan bool)} }
 	go manager.Start()
 	wg.Wait()

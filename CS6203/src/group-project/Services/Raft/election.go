@@ -25,6 +25,10 @@ const (
 	Leader 		candiddateState = 2
 )
 
+var (
+	zookeeperCli *Utils.SdClient
+)
+
 func (e *ElectionManager) setCandidateState(state candiddateState) {e.State = state}
 func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
 
@@ -34,8 +38,9 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 	return true
 }
 
-func (e *ElectionManager) Start() {
-	// TODO: Assume that all new joiners start as a follower. We will need to create a path under /nodes/BaseHashGroup if it does not exist
+func (e *ElectionManager) Start() error {
+	_, err := NewCoordinatorCli("localhost", 8000, e.BaseHashGroup)
+	if err != nil {return err}
 
 	for {
 		select {
@@ -61,4 +66,5 @@ func (e *ElectionManager) Start() {
 			}
 		}
 	}
+	return nil
 }
