@@ -34,7 +34,10 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 	return true
 }
 
-func (e *ElectionManager) Start() {
+func (e *ElectionManager) Start() error {
+	_, err := NewCoordinatorCli("localhost", 8000, e.BaseHashGroup)
+	if err != nil {return err}
+
 	for {
 		select {
 		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
@@ -53,10 +56,11 @@ func (e *ElectionManager) Start() {
 				}
 				e.setCycleNo(e.CycleNo +1) // Increments cycle counter in follower state
 			} else if e.State == Candidate {
-				glog.Info("I am in candidate")
+				glog.Info("In candidate state and requesting for votes")
 			} else if e.State == Leader {
 				glog.Info("I am in leader")
 			}
 		}
 	}
+	return nil
 }
