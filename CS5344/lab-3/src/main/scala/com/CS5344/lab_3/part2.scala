@@ -93,7 +93,6 @@ object part2 extends App {
     * This is essentially filtering the normalized TF_IDF dataframe for all rows containing words in Q
     * We then sum up all the normalized TF_IDF values to get the relevance for the document
     */
-
   val relevanceVector = TF_IDF_norm.map(
                             eachDf => {
                               val filtered = eachDf.filter(col("col").isin(List("wonderful","story") :_*))
