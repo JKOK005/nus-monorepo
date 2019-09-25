@@ -24,6 +24,6 @@ func (s Server) Start() {
 	if err != nil {glog.Fatal(err); panic(err)}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterVotingServiceServer(grpcServer, &Server{})
+	pb.RegisterVotingServiceServer(grpcServer, &s)
 	grpcServer.Serve(lis)
 }

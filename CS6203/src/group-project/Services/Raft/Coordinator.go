@@ -1,14 +1,14 @@
 package Raft
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
-	pb "group-project/Protobuf/Generate"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
+	pb "group-project/Protobuf/Generate"
 	"group-project/Utils"
 	"time"
-	"encoding/json"
-	"context"
 )
 
 type NodeInfo struct {
@@ -19,11 +19,14 @@ type NodeInfo struct {
 type Coordinator struct {
 	MyInfo 				*NodeInfo
 	NodesInGroup 		[]*NodeInfo
+	RefreshTimeMs 		uint32
 	LastSyncTimeEpoch 	uint32
 	PollTimeOutMs 		uint32
 }
 
 var (
+	refreshTimeMs = uint32(10000)
+	pollTimeOutMs = uint32(5000)
 	zkCli *Utils.SdClient
 )
 
@@ -40,11 +43,11 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 		nodeObj 	:= &NodeInfo{Addr:myAddr, Port:myPort}
 		data, _ 	:= json.Marshal(nodeObj)
 		glog.Info(string(data))
-		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprint(baseHashGroup)), data)
+		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
 		if err != nil {return nil, err}
 
 		zkCli = zookeeperCli		// Cache client
-		return &Coordinator{MyInfo: nodeObj}, nil
+		return &Coordinator{MyInfo: nodeObj, RefreshTimeMs: refreshTimeMs, PollTimeOutMs: pollTimeOutMs}, nil
 	}
 }
 
@@ -59,7 +62,8 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 	/*
 	Returns the node value of a node registered under nodePath
 	*/
-	if unmarshalledNode, err := zkCli.GetNodeValue(zkCli.PrependNodePath(nodePath)); err != nil {
+	glog.Info(nodePath)
+	if unmarshalledNode, err := zkCli.GetNodeValue(nodePath); err != nil {
 		glog.Fatal(err)
 		return nil, err
 	} else {
@@ -68,7 +72,7 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 	}
 }
 
-func (c *Coordinator) GetNodes(baseHashGroup uint32, refreshTimeMs uint32) ([]*NodeInfo, error) {
+func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	/*
 	Returns the addresses of all nodes in the same node group
 
@@ -78,17 +82,17 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32, refreshTimeMs uint32) ([]*N
 	Else
 	- Return list of nodes cached
 	*/
-	currTimeMs := time.Now().Nanosecond() / 1000000
+	currTimeMs := time.Now().Nanosecond() * 1000000
 
-	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + refreshTimeMs {
+	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + c.RefreshTimeMs {
 		// Hit ZK to refresh cache
-		if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprint(baseHashGroup))); err != nil {
+		if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup))); err != nil {
 			glog.Fatal(err)
 			return nil, err
 		} else {
 			var nodePtrs []*NodeInfo
 			for _, nodePath := range childPaths {
-				if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprint("%d/%s", baseHashGroup, nodePath))); err != nil {
+				if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprintf("%d/%s", baseHashGroup, nodePath))); err != nil {
 					glog.Fatal(err)
 					return nil, err
 				} else {nodePtrs = append(nodePtrs, nodePtr)}
@@ -111,13 +115,21 @@ func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan boo
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
 		defer conn.Close(); defer cancel()
+
 		client := pb.NewVotingServiceClient(conn)
-		if resp, err := client.RequestVote(ctx, &pb.RequestForVoteMsg{CandidateTerm: termNo}); err != nil {
-			glog.Fatal(err)
-			respCh <- false
+		resp, err := client.RequestVote(ctx, &pb.RequestForVoteMsg{CandidateTerm: termNo})
+
+		if ctx.Err() == context.DeadlineExceeded {
+			// Request timed out. Report as timeout.
+			glog.Warning("Request timed out: ", ctx.Err())
 		} else {
-			glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
-			respCh <- resp.Ack
+			if err != nil {
+				glog.Fatal(err)
+				respCh <- false
+			} else {
+				glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
+				respCh <- resp.Ack
+			}
 		}
 	}
 }

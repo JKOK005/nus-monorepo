@@ -86,13 +86,13 @@ func (s SdClient) constructNodesInPath(path string, delimiter string, data []byt
 }
 
 func (s SdClient) PrependNodePath(fromPath string) string {
-	if fromPath == "" {return fmt.Sprint("/%s/", node_path)}
-	return fmt.Sprintf("/%s/%s/", node_path, fromPath)
+	if fromPath == "" {return fmt.Sprint("/%s", node_path)}
+	return fmt.Sprintf("/%s/%s", node_path, fromPath)
 }
 
 func (s SdClient) PrependFollowerPath(fromPath string) string {
-	if fromPath == "" {return fmt.Sprint("/%s/", follower_path)}
-	return fmt.Sprintf("/%s/%s/", follower_path, fromPath)
+	if fromPath == "" {return fmt.Sprint("/%s", follower_path)}
+	return fmt.Sprintf("/%s/%s", follower_path, fromPath)
 }
 
 func (s SdClient) GetNodePaths(from_path string) ([]string, error) {

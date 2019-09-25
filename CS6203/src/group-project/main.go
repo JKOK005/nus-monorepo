@@ -48,9 +48,9 @@ func testRocksDb ()  {
 func main () {
 	flag.Parse()  // Needed for glog
 
-	nodeAddr := "localhost"
-	nodePort := uint32(8000)
-	dbCli, _ := dep.InitRocksDB("./storage")
+	nodeAddr := dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
+	nodePort := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8000))
+	dbCli, _ := dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
