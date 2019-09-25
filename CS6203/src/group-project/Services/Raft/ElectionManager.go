@@ -81,14 +81,14 @@ func (e ElectionManager) Start() {
 				glog.Infof("Quorum size: %d, Votes are: ", len(nodeLst), votes)
 				if e.votedMajority(votes, len(nodeLst)) {
 					glog.Info("Received majority of votes. Promoting to leader")
+					_ = coordCli.MarkAsLeader(e.BaseHashGroup)
 					e.setCandidateState(Leader)
 				} else {
 					glog.Info("Received minority of votes. Demoting to follower")
 					e.setCandidateState(Follower)
 				}
 			} else if e.State == Leader {
-				glog.Info("I am in leader")
-				e.setCandidateState(Follower)
+				glog.Info("In leader state")
 			}
 		}
 	}

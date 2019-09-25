@@ -66,7 +66,7 @@ func (s SdClient) constructEphemeralNode(path string, data []byte) error {
 	return nil
 }
 
-func (s SdClient) constructNodesInPath(path string, delimiter string, data []byte) error {
+func (s SdClient) ConstructNodesInPath(path string, delimiter string, data []byte) error {
 	/*
 		Creates a ZK path of nested nodes from path and delimiter
 		If the node created is not the end node, we will populate its data with an empty []byte
@@ -123,7 +123,7 @@ func (s SdClient) RegisterEphemeralNode(client_path string, data []byte) error {
 	glog.Info("Registering worker ephemeral node address at ", client_path)
 	full_path_without_last_slice := strings.Split(client_path, "/")
 	full_path_without_last := strings.Join(full_path_without_last_slice[ : len(full_path_without_last_slice)-1], "/")
-	if err := s.constructNodesInPath(full_path_without_last, "/", nil); err != nil {return err}
+	if err := s.ConstructNodesInPath(full_path_without_last, "/", nil); err != nil {return err}
 	if err := s.constructEphemeralNode(client_path, data); err != nil {return err}
 	glog.Info("Created")
 	return nil

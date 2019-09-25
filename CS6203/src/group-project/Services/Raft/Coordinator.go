@@ -45,7 +45,6 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 		glog.Info(string(data))
 		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
 		if err != nil {return nil, err}
-
 		zkCli = zookeeperCli		// Cache client
 		return &Coordinator{MyInfo: nodeObj, RefreshTimeMs: refreshTimeMs, PollTimeOutMs: pollTimeOutMs}, nil
 	}
@@ -158,4 +157,19 @@ func (c *Coordinator) IssueHeartbeats(node []*NodeInfo, termNo uint32) ([]bool, 
 	Issues heartbeat messages to a list of nodes
 	*/
 	return nil, nil
+}
+
+func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {
+	/*
+	Node declares itself as the leader of the group
+	We must:
+	- Register node's address:port under /nodes/<hash_no>
+	- Create a /follower/<hash_no> path if it does not exist
+	*/
+	var err error
+	data, _ 	:= json.Marshal(c.MyInfo)
+	glog.Info("Register as leader: ", string(data))
+	err = zkCli.SetNodeValue(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup)), data)
+	err = zkCli.ConstructNodesInPath(zkCli.PrependFollowerPath(fmt.Sprintf("%d", baseHashGroup)), "/", nil)
+	return err
 }
