@@ -109,6 +109,12 @@ func (s SdClient) GetNodeValue (from_path string) ([]byte, error) {
 	return data, nil
 }
 
+func (s SdClient) SetNodeValue (from_path string, data []byte) error {
+	/* Sets the node value from from_path */
+	_, err := s.conn.Set(from_path, data, 0)
+	return err
+}
+
 func (s SdClient) RegisterEphemeralNode(client_path string, data []byte) error {
 	/*
 		Registers ephemeral node at client_path with data
