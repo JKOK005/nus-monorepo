@@ -64,7 +64,7 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 	*/
 	glog.Info(nodePath)
 	if unmarshalledNode, err := zkCli.GetNodeValue(nodePath); err != nil {
-		glog.Fatal(err)
+		glog.Warning(err)
 		return nil, err
 	} else {
 		marshalledNode, _ := c.marshalOne(unmarshalledNode)
@@ -87,13 +87,13 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + c.RefreshTimeMs {
 		// Hit ZK to refresh cache
 		if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup))); err != nil {
-			glog.Fatal(err)
+			glog.Warning(err)
 			return nil, err
 		} else {
 			var nodePtrs []*NodeInfo
 			for _, nodePath := range childPaths {
 				if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprintf("%d/%s", baseHashGroup, nodePath))); err != nil {
-					glog.Fatal(err)
+					glog.Warning(err)
 					return nil, err
 				} else {nodePtrs = append(nodePtrs, nodePtr)}
 			}
@@ -110,7 +110,7 @@ func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan boo
 	*/
 	glog.Infof("Requesting vote from addr: %s, port: %d", node.Addr, node.Port)
 	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
-		glog.Fatal(err)
+		glog.Warning(err)
 		respCh <- false
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
@@ -124,7 +124,7 @@ func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan boo
 			glog.Warning("Request timed out: ", ctx.Err())
 		} else {
 			if err != nil {
-				glog.Fatal(err)
+				glog.Warning(err)
 				respCh <- false
 			} else {
 				glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)

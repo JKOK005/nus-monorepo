@@ -36,9 +36,9 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 }
 
 func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
-	yesVotes := 0
+	yesVotes := 1 // Node votes for itself by default
 	for _, vote := range votes {if vote {yesVotes++}}
-	return yesVotes >= int(math.RoundToEven(float64(quorumSize / 2)))
+	return yesVotes >= (quorumSize / 2) +1
 }
 
 func (e *ElectionManager) termNoRoutine() {

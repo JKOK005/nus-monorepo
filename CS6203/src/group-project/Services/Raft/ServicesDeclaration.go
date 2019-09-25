@@ -25,9 +25,9 @@ func (s *Server) RequestVote(ctx context.Context, msg *pb.RequestForVoteMsg) (*p
 	Vote is NO if otherwise
 	*/
 	termNo := s.requestTermNo()
-	if termNo <= msg.CandidateTerm {
+	if termNo < msg.CandidateTerm {
 		glog.Infof("(Vote YES) %s:%d - node term no: %d <= %d", s.NodeAddr, s.NodePort, termNo, msg.CandidateTerm)
-		if termNo < msg.CandidateTerm {s.setTermNo(termNo)}
+		s.setTermNo(msg.CandidateTerm)
 		return &pb.RequestForVoteReply{Ack:true}, nil
 	} else {
 		glog.Infof("(Vote NO) %s:%d - node term no: %d > %d", s.NodeAddr, s.NodePort, termNo, msg.CandidateTerm)
