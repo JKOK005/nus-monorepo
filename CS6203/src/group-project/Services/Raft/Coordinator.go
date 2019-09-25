@@ -2,21 +2,25 @@ package Raft
 
 import (
 	"fmt"
+	pb "group-project/Protobuf/Generate"
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 	"group-project/Utils"
 	"time"
 	"encoding/json"
+	"context"
 )
 
 type NodeInfo struct {
-	addr string
-	port uint32
+	Addr string
+	Port uint32
 }
 
 type Coordinator struct {
-	myInfo 				*NodeInfo
-	nodesInGroup 		[]*NodeInfo
-	lastSyncTimeEpoch 	uint32
+	MyInfo 				*NodeInfo
+	NodesInGroup 		[]*NodeInfo
+	LastSyncTimeEpoch 	uint32
+	PollTimeOutMs 		uint32
 }
 
 var (
@@ -33,13 +37,14 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 		return nil, err
 	} else {
 		glog.Info(fmt.Sprintf("Addr: %s, Port: %d, hash group: %d", myAddr, myPort, baseHashGroup))
-		nodeObj 	:= &NodeInfo{addr:myAddr, port:myPort}
+		nodeObj 	:= &NodeInfo{Addr:myAddr, Port:myPort}
 		data, _ 	:= json.Marshal(nodeObj)
+		glog.Info(string(data))
 		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprint(baseHashGroup)), data)
 		if err != nil {return nil, err}
 
 		zkCli = zookeeperCli		// Cache client
-		return &Coordinator{myInfo: nodeObj}, nil
+		return &Coordinator{MyInfo: nodeObj}, nil
 	}
 }
 
@@ -75,7 +80,7 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32, refreshTimeMs uint32) ([]*N
 	*/
 	currTimeMs := time.Now().Nanosecond() / 1000000
 
-	if uint32(currTimeMs) >= c.lastSyncTimeEpoch + refreshTimeMs {
+	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + refreshTimeMs {
 		// Hit ZK to refresh cache
 		if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprint(baseHashGroup))); err != nil {
 			glog.Fatal(err)
@@ -88,35 +93,55 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32, refreshTimeMs uint32) ([]*N
 					return nil, err
 				} else {nodePtrs = append(nodePtrs, nodePtr)}
 			}
-			c.nodesInGroup = nodePtrs 					// Updates cache
-			c.lastSyncTimeEpoch = uint32(currTimeMs) 	// Updates timestamp to ensure we do not hit ZK so soon
+			c.NodesInGroup = nodePtrs 					// Updates cache
+			c.LastSyncTimeEpoch = uint32(currTimeMs) 	// Updates timestamp to ensure we do not hit ZK so soon
 		}
 	}
-	return c.nodesInGroup, nil
+	return c.NodesInGroup, nil
 }
 
-func (c *Coordinator) RequestVote(node NodeInfo, termNo uint32) (bool, error) {
+func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan bool) {
 	/*
 	Requests a node for voting via gRPC
 	*/
-	return false, nil
+	glog.Infof("Requesting vote from addr: %s, port: %d", node.Addr, node.Port)
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
+		glog.Fatal(err)
+		respCh <- false
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
+		client := pb.NewVotingServiceClient(conn)
+		if resp, err := client.RequestVote(ctx, &pb.RequestForVoteMsg{CandidateTerm: termNo}); err != nil {
+			glog.Fatal(err)
+			respCh <- false
+		} else {
+			glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
+			respCh <- resp.Ack
+		}
+	}
 }
 
-func (c *Coordinator) RequestVotes(nodes []NodeInfo, termNo uint32) ([]bool, error) {
+func (c *Coordinator) RequestVotes(nodes []*NodeInfo, termNo uint32) ([]bool, error) {
 	/*
 	Requests a list of nodes for voting via gRPC
 	*/
-	return nil, nil
+	var voteResp []bool
+	respCh := make (chan bool)
+	defer close(respCh)
+	for _, nodePtr := range nodes {go c.RequestVote(nodePtr, termNo, respCh)}
+	for range nodes {voteResp = append(voteResp, <-respCh)}
+	return voteResp, nil
 }
 
-func (c *Coordinator) IssueHeartbeat(node NodeInfo, termNo uint32) (bool, error) {
+func (c *Coordinator) IssueHeartbeat(node *NodeInfo, termNo uint32) (bool, error) {
 	/*
 	Issues a heartbeat message to a node
 	*/
 	return false, nil
 }
 
-func (c *Coordinator) IssueHeartbeats(node []NodeInfo, termNo uint32) ([]bool, error) {
+func (c *Coordinator) IssueHeartbeats(node []*NodeInfo, termNo uint32) ([]bool, error) {
 	/*
 	Issues heartbeat messages to a list of nodes
 	*/

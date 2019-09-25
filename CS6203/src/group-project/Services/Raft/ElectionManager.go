@@ -2,31 +2,32 @@ package Raft
 
 import (
 	"github.com/golang/glog"
-	"group-project/Utils"
+	util "group-project/Utils"
 	"math"
 	"time"
 )
 
-type candiddateState uint8
+type candidateState uint8
 
 type ElectionManager struct {
+	NodeAddr 		string 					// Node address
+	NodePort 		uint32 					// Node port
 	BaseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
 	TermNo 			uint32					// Present term number
 	CycleNo 		uint32					// Present cycle number
 	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo
 	CycleTimeMs 	uint32 					// Cycle time for the start loop
-	State 			candiddateState 		// Present state
-	TermNoChannel 	*Utils.TermNoChannel
+	State 			candidateState 			// Present state
 }
 
 const (
-	Follower 	candiddateState = 0
-	Candidate 	candiddateState = 1
-	Leader 		candiddateState = 2
+	Follower 	candidateState = 0
+	Candidate 	candidateState = 1
+	Leader 		candidateState = 2
 )
 
-func (e *ElectionManager) setCandidateState(state candiddateState) {e.State = state}
-func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
+func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
+func (e *ElectionManager) setCycleNo(no uint32) {glog.Info("Set cycle no to: ", no); e.CycleNo = no}
 
 func (e *ElectionManager) setTermNo(no uint32) bool {
 	glog.Info("Term no set to: ", no)
@@ -34,25 +35,31 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 	return true
 }
 
-func (e *ElectionManager) Start() error {
-	_, err := NewCoordinatorCli("localhost", 8000, e.BaseHashGroup)
-	if err != nil {return err}
+func (e ElectionManager) Start() {
+	_, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
+	if err != nil {glog.Fatal(err); panic(err)}
 
 	for {
 		select {
 		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
+			// Handles any request for term number
+			select {
+			case <-util.GetTermNoCh.ReqCh: glog.Info("Term no request received"); util.GetTermNoCh.RespCh <- e.TermNo
+			default: glog.Info("No term no request")
+			}
+
 			if e.State == Follower {
 				select {
-				case termNo := <-e.TermNoChannel.ReqCh:
+				case termNo := <-util.SetTermNoCh.ReqCh:
 					glog.Infof("Setting term to ", termNo)
 					e.setCycleNo(0)
-					e.TermNoChannel.RespCh <- e.setTermNo(termNo)
+					util.SetTermNoCh.RespCh <- e.setTermNo(termNo)
 				default:
 					if e.CycleNo > e.CyclesToTimeout {
 						e.setTermNo(e.TermNo +1) // Increments term no and transit to candidate status
 						e.setCandidateState(Candidate)
 					}
-					glog.Info("In follower state")
+					glog.Info("In follower state. Cycle no: ", e.CycleNo)
 				}
 				e.setCycleNo(e.CycleNo +1) // Increments cycle counter in follower state
 			} else if e.State == Candidate {
@@ -62,5 +69,4 @@ func (e *ElectionManager) Start() error {
 			}
 		}
 	}
-	return nil
 }

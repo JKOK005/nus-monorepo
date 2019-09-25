@@ -47,10 +47,20 @@ func testRocksDb ()  {
 
 func main () {
 	flag.Parse()  // Needed for glog
+
+	nodeAddr := "localhost"
+	nodePort := uint32(8000)
+	dbCli, _ := dep.InitRocksDB("./storage")
+
 	var wg sync.WaitGroup
 	wg.Add(1)
-	manager := &Raft.ElectionManager{ 	BaseHashGroup: 11, CycleNo: 0, CyclesToTimeout: 10, CycleTimeMs: 1000,
-										State: Raft.Follower, TermNoChannel: &dep.TermNoChannel{make(chan uint32), make(chan bool)} }
-	go manager.Start()
+
+	// Start up server to register all gRPC services
+	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort, DbCli: dbCli}.Start()
+
+	// Start up state manager
+	go Raft.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: 11, CycleNo: 0,
+							 CyclesToTimeout: 10, CycleTimeMs: 1000, State: Raft.Follower}.Start()
+
 	wg.Wait()
 }
