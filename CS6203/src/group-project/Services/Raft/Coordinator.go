@@ -61,7 +61,6 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 	/*
 	Returns the node value of a node registered under nodePath
 	*/
-	glog.Info(nodePath)
 	if unmarshalledNode, err := zkCli.GetNodeValue(nodePath); err != nil {
 		glog.Warning(err)
 		return nil, err
@@ -202,11 +201,13 @@ func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {
 	We must:
 	- Register node's address:port under /nodes/<hash_no>
 	- Create a /follower/<hash_no> path if it does not exist
+	- Inform all nodes registered under /follower/<hash_no> that it is the new leader
 	*/
 	var err error
 	data, _ 	:= json.Marshal(c.MyInfo)
 	glog.Info("Register as leader: ", string(data))
 	err = zkCli.SetNodeValue(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup)), data)
 	err = zkCli.ConstructNodesInPath(zkCli.PrependFollowerPath(fmt.Sprintf("%d", baseHashGroup)), "/", nil)
+	// TODO: Inform all nodes registered under /follower/<hash_no> that it is the new leader
 	return err
 }

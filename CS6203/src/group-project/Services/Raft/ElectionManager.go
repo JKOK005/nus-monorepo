@@ -28,7 +28,7 @@ const (
 
 func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
 func (e *ElectionManager) setCycleNo(no uint32) bool {
-	glog.Info("Cycle no sest to: ", no)
+	glog.Info("Cycle no set to: ", no)
 	e.CycleNo = no
 	return true
 }
@@ -46,6 +46,7 @@ func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
 }
 
 func (e *ElectionManager) votedComplete(votes []bool, quorumSize int) bool {
+	glog.Info("Votes: ", votes)
 	totalVotes := 0
 	for _, vote := range votes {if vote {totalVotes++}}
 	return totalVotes == quorumSize
@@ -78,7 +79,9 @@ func (e *ElectionManager) setCycleNoRoutine() {
 func (e ElectionManager) Start() {
 	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
 	if err != nil {glog.Fatal(err); panic(err)}
+
 	go e.geTermNoRoutine()
+	go e.setCycleNoRoutine()
 
 	for {
 		select {
@@ -118,7 +121,7 @@ func (e ElectionManager) Start() {
 				if !e.votedComplete(beatChecks, len(nodeLst)) {
 					// At least one heartbeat check returned false. We will have to force refresh node list
 					glog.Info("At least one slave heartbeat check returned false. Refreshing node list")
-					_ := coordCli.RefreshNodeList(e.BaseHashGroup)
+					_ = coordCli.RefreshNodeList(e.BaseHashGroup)
 				}
 			}
 		}

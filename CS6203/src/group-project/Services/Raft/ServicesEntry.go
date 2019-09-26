@@ -25,5 +25,6 @@ func (s Server) Start() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterVotingServiceServer(grpcServer, &s)
+	pb.RegisterHeartbeatServiceServer(grpcServer, &s)
 	grpcServer.Serve(lis)
 }

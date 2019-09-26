@@ -18,7 +18,7 @@ func (s *Server) setTermNo(newTermNo uint32) bool {
 }
 
 func (s *Server) setCycleNo(newcycleNo uint32) bool {
-	util.SetCycleNoCh.ReqCh <- 0
+	util.SetCycleNoCh.ReqCh <- newcycleNo
 	return <-util.SetCycleNoCh.RespCh
 }
 
@@ -41,7 +41,7 @@ func (s *Server) RequestVote(ctx context.Context, msg *pb.RequestForVoteMsg) (*p
 	}
 }
 
-func (s *Server) HeartbeatCheck(ctx context.Context, msg pb.HeartBeatMsg) (*pb.HeartBeatResp, error) {
+func (s *Server) HeartbeatCheck(ctx context.Context, msg *pb.HeartBeatMsg) (*pb.HeartBeatResp, error) {
 	/*
 	The leader is responsible for sending heartbeats to slaves before a timeout period.
 	Upon receiving a heartbeat, the slave will set its term no to the leader's term no and will recet cycle no
@@ -53,7 +53,7 @@ func (s *Server) HeartbeatCheck(ctx context.Context, msg pb.HeartBeatMsg) (*pb.H
 	return &pb.HeartBeatResp{Ack:true}, nil
 }
 
-func (s *Server) ReceiveReplication(ctx context.Context, msg pb.StatementReplicationMsg) (*pb.StatementReplicationResp, error) {
+func (s *Server) ReceiveReplication(ctx context.Context, msg *pb.StatementReplicationMsg) (*pb.StatementReplicationResp, error) {
 	/*
 	Executes a request to set a (key, val) pair into DB
 	*/
@@ -64,7 +64,7 @@ func (s *Server) ReceiveReplication(ctx context.Context, msg pb.StatementReplica
 	return &pb.StatementReplicationResp{Ack:true}, nil
 }
 
-func (s *Server) ReceiveFingerTable(ctx context.Context, msg pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
+func (s *Server) ReceiveFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
 	/*
 	Executes a request to update Finger Table
 	*/
