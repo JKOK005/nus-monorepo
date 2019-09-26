@@ -57,7 +57,6 @@ func (e *ElectionManager) getTermNoRoutine() {
 	for {
 		select {
 		case <-util.GetTermNoCh.ReqCh:
-			glog.Info("Term no GET request received")
 			util.GetTermNoCh.RespCh <- e.TermNo
 		default:
 		}
@@ -69,7 +68,6 @@ func (e *ElectionManager) setTermNoRoutine() {
 	for {
 		select {
 		case termNo := <-util.SetTermNoCh.ReqCh:
-			glog.Info("Term no SET request received")
 			util.SetTermNoCh.RespCh <- e.setTermNo(termNo)
 		default:
 		}
@@ -81,7 +79,6 @@ func (e *ElectionManager) setCycleNoRoutine() {
 	for {
 		select {
 		case cycleNo := <-util.SetCycleNoCh.ReqCh:
-			glog.Info("Set cycle no request received")
 			util.SetCycleNoCh.RespCh <- e.setCycleNo(cycleNo)
 		default:
 		}
