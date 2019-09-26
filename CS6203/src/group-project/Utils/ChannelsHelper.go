@@ -10,10 +10,16 @@ type setTermNoChannel struct {
 	RespCh 	chan bool
 } 	// Term number setting channel
 
+type setCycleNoChannel struct {
+	ReqCh 	chan uint32
+	RespCh 	chan bool
+}
+
 /*
  Shared channels for all go routines to use for communication
  */
 var (
-	GetTermNoCh = &getTermNoChannel{ReqCh: make(chan bool), RespCh: make(chan uint32)}
-	SetTermNoCh = &setTermNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
+	GetTermNoCh 	= &getTermNoChannel{ReqCh: make(chan bool), RespCh: make(chan uint32)}
+	SetTermNoCh 	= &setTermNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
+	SetCycleNoCh 	= &setCycleNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
 )

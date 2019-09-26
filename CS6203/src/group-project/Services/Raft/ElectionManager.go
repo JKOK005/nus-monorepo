@@ -27,7 +27,11 @@ const (
 )
 
 func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
-func (e *ElectionManager) setCycleNo(no uint32) {e.CycleNo = no}
+func (e *ElectionManager) setCycleNo(no uint32) bool {
+	glog.Info("Cycle no sest to: ", no)
+	e.CycleNo = no
+	return true
+}
 
 func (e *ElectionManager) setTermNo(no uint32) bool {
 	glog.Info("Term no set to: ", no)
@@ -41,11 +45,25 @@ func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
 	return yesVotes >= (quorumSize / 2) +1
 }
 
-func (e *ElectionManager) termNoRoutine() {
-	// Handles any request for term number
+func (e *ElectionManager) geTermNoRoutine() {
+	// Handles any request to get term number
 	for {
 		select {
-		case <-util.GetTermNoCh.ReqCh: glog.Info("Term no request received"); util.GetTermNoCh.RespCh <- e.TermNo
+		case <-util.GetTermNoCh.ReqCh:
+			glog.Info("Term no request received")
+			util.GetTermNoCh.RespCh <- e.TermNo
+		default:
+		}
+	}
+}
+
+func (e *ElectionManager) setCycleNoRoutine() {
+	// Handles any requests to set cycle number
+	for {
+		select {
+		case cycleNo := <-util.SetCycleNoCh.ReqCh:
+			glog.Info("Set cycle no request received")
+			util.SetCycleNoCh.RespCh <- e.setCycleNo(cycleNo)
 		default:
 		}
 	}
@@ -54,7 +72,7 @@ func (e *ElectionManager) termNoRoutine() {
 func (e ElectionManager) Start() {
 	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
 	if err != nil {glog.Fatal(err); panic(err)}
-	go e.termNoRoutine()
+	go e.geTermNoRoutine()
 
 	for {
 		select {
