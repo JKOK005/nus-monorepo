@@ -66,7 +66,7 @@ func (s SdClient) constructEphemeralNode(path string, data []byte) error {
 	return nil
 }
 
-func (s SdClient) constructNodesInPath(path string, delimiter string, data []byte) error {
+func (s SdClient) ConstructNodesInPath(path string, delimiter string, data []byte) error {
 	/*
 		Creates a ZK path of nested nodes from path and delimiter
 		If the node created is not the end node, we will populate its data with an empty []byte
@@ -86,13 +86,13 @@ func (s SdClient) constructNodesInPath(path string, delimiter string, data []byt
 }
 
 func (s SdClient) PrependNodePath(fromPath string) string {
-	if fromPath == "" {return fmt.Sprint("/%s/", node_path)}
-	return fmt.Sprintf("/%s/%s/", node_path, fromPath)
+	if fromPath == "" {return fmt.Sprint("/%s", node_path)}
+	return fmt.Sprintf("/%s/%s", node_path, fromPath)
 }
 
 func (s SdClient) PrependFollowerPath(fromPath string) string {
-	if fromPath == "" {return fmt.Sprint("/%s/", follower_path)}
-	return fmt.Sprintf("/%s/%s/", follower_path, fromPath)
+	if fromPath == "" {return fmt.Sprint("/%s", follower_path)}
+	return fmt.Sprintf("/%s/%s", follower_path, fromPath)
 }
 
 func (s SdClient) GetNodePaths(from_path string) ([]string, error) {
@@ -109,6 +109,12 @@ func (s SdClient) GetNodeValue (from_path string) ([]byte, error) {
 	return data, nil
 }
 
+func (s SdClient) SetNodeValue (from_path string, data []byte) error {
+	/* Sets the node value from from_path */
+	_, err := s.conn.Set(from_path, data, 0)
+	return err
+}
+
 func (s SdClient) RegisterEphemeralNode(client_path string, data []byte) error {
 	/*
 		Registers ephemeral node at client_path with data
@@ -117,7 +123,7 @@ func (s SdClient) RegisterEphemeralNode(client_path string, data []byte) error {
 	glog.Info("Registering worker ephemeral node address at ", client_path)
 	full_path_without_last_slice := strings.Split(client_path, "/")
 	full_path_without_last := strings.Join(full_path_without_last_slice[ : len(full_path_without_last_slice)-1], "/")
-	if err := s.constructNodesInPath(full_path_without_last, "/", nil); err != nil {return err}
+	if err := s.ConstructNodesInPath(full_path_without_last, "/", nil); err != nil {return err}
 	if err := s.constructEphemeralNode(client_path, data); err != nil {return err}
 	glog.Info("Created")
 	return nil
