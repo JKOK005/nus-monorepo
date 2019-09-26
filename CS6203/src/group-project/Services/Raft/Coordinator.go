@@ -19,13 +19,13 @@ type NodeInfo struct {
 type Coordinator struct {
 	MyInfo 				*NodeInfo
 	NodesInGroup 		[]*NodeInfo
-	RefreshTimeMs 		uint32
-	LastSyncTimeEpoch 	uint32
 	PollTimeOutMs 		uint32
+	RefreshTimeMs 		int64
+	LastSyncTimeEpoch 	int64
 }
 
 var (
-	refreshTimeMs = uint32(10000)
+	refreshTimeMs = int64(10000)
 	pollTimeOutMs = uint32(5000)
 	zkCli *Utils.SdClient
 )
@@ -99,12 +99,14 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	Else
 	- Return list of nodes cached
 	*/
-	currTimeMs := time.Now().Nanosecond() * 1000000
-	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + c.RefreshTimeMs {
+	currTimeMs := time.Now().UnixNano() / int64(time.Millisecond)
+	glog.Info(currTimeMs, " ", c.LastSyncTimeEpoch, " ", c.RefreshTimeMs)
+	if currTimeMs >= c.LastSyncTimeEpoch + c.RefreshTimeMs {
 		if err := c.RefreshNodeList(baseHashGroup); err != nil {
+			glog.Error(err)
 			return nil, err
 		}
-		c.LastSyncTimeEpoch = uint32(currTimeMs) 	// Updates timestamp to ensure we do not hit ZK so soon
+		c.LastSyncTimeEpoch = currTimeMs 	// Updates timestamp to ensure we do not hit ZK so soon
 	}
 	return c.NodesInGroup, nil
 }

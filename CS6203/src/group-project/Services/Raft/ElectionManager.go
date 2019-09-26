@@ -46,19 +46,31 @@ func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
 }
 
 func (e *ElectionManager) votedComplete(votes []bool, quorumSize int) bool {
-	glog.Info("Votes: ", votes)
+	glog.Info("Heartbeats: ", votes)
 	totalVotes := 0
 	for _, vote := range votes {if vote {totalVotes++}}
 	return totalVotes == quorumSize
 }
 
-func (e *ElectionManager) geTermNoRoutine() {
+func (e *ElectionManager) getTermNoRoutine() {
 	// Handles any request to get term number
 	for {
 		select {
 		case <-util.GetTermNoCh.ReqCh:
-			glog.Info("Term no request received")
+			glog.Info("Term no GET request received")
 			util.GetTermNoCh.RespCh <- e.TermNo
+		default:
+		}
+	}
+}
+
+func (e *ElectionManager) setTermNoRoutine() {
+	// Handles any request to get term number
+	for {
+		select {
+		case termNo := <-util.SetTermNoCh.ReqCh:
+			glog.Info("Term no SET request received")
+			util.SetTermNoCh.RespCh <- e.setTermNo(termNo)
 		default:
 		}
 	}
@@ -80,7 +92,8 @@ func (e ElectionManager) Start() {
 	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
 	if err != nil {glog.Fatal(err); panic(err)}
 
-	go e.geTermNoRoutine()
+	go e.getTermNoRoutine()
+	go e.setTermNoRoutine()
 	go e.setCycleNoRoutine()
 
 	for {
