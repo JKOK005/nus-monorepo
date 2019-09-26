@@ -70,6 +70,25 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 		return marshalledNode, nil
 	}
 }
+func (c *Coordinator) RefreshNodeList(baseHashGroup uint32) error {
+	// Hits Zookeeper under /<base>/baseHashGroup to fetch all nodes registered in the directory
+	glog.Infof("Forced refresh of nodes in group %d requests to Zookeeper", baseHashGroup)
+	if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup))); err != nil {
+		glog.Warning(err)
+		return err
+	} else {
+		var nodePtrs []*NodeInfo
+		for _, nodePath := range childPaths {
+			if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprintf("%d/%s", baseHashGroup, nodePath))); err != nil {
+				glog.Warning(err)
+				return err
+			} else {nodePtrs = append(nodePtrs, nodePtr)}
+		}
+		c.NodesInGroup = nodePtrs 					// Updates cache
+	}
+	return nil
+}
+
 
 func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	/*
@@ -82,23 +101,11 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	- Return list of nodes cached
 	*/
 	currTimeMs := time.Now().Nanosecond() * 1000000
-
 	if uint32(currTimeMs) >= c.LastSyncTimeEpoch + c.RefreshTimeMs {
-		// Hit ZK to refresh cache
-		if childPaths, err := zkCli.GetNodePaths(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup))); err != nil {
-			glog.Warning(err)
+		if err := c.RefreshNodeList(baseHashGroup); err != nil {
 			return nil, err
-		} else {
-			var nodePtrs []*NodeInfo
-			for _, nodePath := range childPaths {
-				if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprintf("%d/%s", baseHashGroup, nodePath))); err != nil {
-					glog.Warning(err)
-					return nil, err
-				} else {nodePtrs = append(nodePtrs, nodePtr)}
-			}
-			c.NodesInGroup = nodePtrs 					// Updates cache
-			c.LastSyncTimeEpoch = uint32(currTimeMs) 	// Updates timestamp to ensure we do not hit ZK so soon
 		}
+		c.LastSyncTimeEpoch = uint32(currTimeMs) 	// Updates timestamp to ensure we do not hit ZK so soon
 	}
 	return c.NodesInGroup, nil
 }
@@ -121,6 +128,7 @@ func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan boo
 		if ctx.Err() == context.DeadlineExceeded {
 			// Request timed out. Report as timeout.
 			glog.Warning("Request timed out: ", ctx.Err())
+			respCh <- false
 		} else {
 			if err != nil {
 				glog.Warning(err)
@@ -145,18 +153,47 @@ func (c *Coordinator) RequestVotes(nodes []*NodeInfo, termNo uint32) ([]bool, er
 	return voteResp, nil
 }
 
-func (c *Coordinator) IssueHeartbeat(node *NodeInfo, termNo uint32) (bool, error) {
+func (c *Coordinator) IssueHeartbeat(node *NodeInfo, termNo uint32, respCh chan bool) {
 	/*
 	Issues a heartbeat message to a node
 	*/
-	return false, nil
+	glog.Infof("Renewing heartbeat for addr: %s, port: %d", node.Addr, node.Port)
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
+		glog.Warning(err)
+		respCh <- false
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
+
+		client := pb.NewHeartbeatServiceClient(conn)
+		resp, err := client.HeartbeatCheck(ctx, &pb.HeartBeatMsg{TermNo: termNo})
+
+		if ctx.Err() == context.DeadlineExceeded {
+			// Request timed out. Report as timeout.
+			glog.Warning("Request timed out: ", ctx.Err())
+			respCh <- false
+		} else {
+			if err != nil {
+				glog.Warning(err)
+				respCh <- false
+			} else {
+				glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
+				respCh <- resp.Ack
+			}
+		}
+	}
 }
 
-func (c *Coordinator) IssueHeartbeats(node []*NodeInfo, termNo uint32) ([]bool, error) {
+func (c *Coordinator) IssueHeartbeats(nodes []*NodeInfo, termNo uint32) ([]bool, error) {
 	/*
-	Issues heartbeat messages to a list of nodes
+	Issues heartbeat checks to a list of nodes
 	*/
-	return nil, nil
+	var heartbeatsResp []bool
+	respCh := make (chan bool)
+	defer close(respCh)
+	for _, nodePtr := range nodes {go c.IssueHeartbeat(nodePtr, termNo, respCh)}
+	for range nodes {heartbeatsResp = append(heartbeatsResp, <-respCh)}
+	return heartbeatsResp, nil
 }
 
 func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {

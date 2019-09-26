@@ -17,6 +17,11 @@ func (s *Server) setTermNo(newTermNo uint32) bool {
 	return <-util.SetTermNoCh.RespCh
 }
 
+func (s *Server) setCycleNo(newcycleNo uint32) bool {
+	util.SetCycleNoCh.ReqCh <- 0
+	return <-util.SetCycleNoCh.RespCh
+}
+
 func (s *Server) RequestVote(ctx context.Context, msg *pb.RequestForVoteMsg) (*pb.RequestForVoteReply, error) {
 	/*
 	Evaluates if node should vote positive for a vote request RPC.
@@ -28,7 +33,7 @@ func (s *Server) RequestVote(ctx context.Context, msg *pb.RequestForVoteMsg) (*p
 	if termNo < msg.CandidateTerm {
 		glog.Infof("(Vote YES) %s:%d - node term no: %d <= %d", s.NodeAddr, s.NodePort, termNo, msg.CandidateTerm)
 		s.setTermNo(msg.CandidateTerm)
-		// TODO: Set node cycle number to 0
+		s.setCycleNo(0) 		// Reset cycle no of current node
 		return &pb.RequestForVoteReply{Ack:true}, nil
 	} else {
 		glog.Infof("(Vote NO) %s:%d - node term no: %d > %d", s.NodeAddr, s.NodePort, termNo, msg.CandidateTerm)
@@ -38,10 +43,13 @@ func (s *Server) RequestVote(ctx context.Context, msg *pb.RequestForVoteMsg) (*p
 
 func (s *Server) HeartbeatCheck(ctx context.Context, msg pb.HeartBeatMsg) (*pb.HeartBeatResp, error) {
 	/*
-	The leader is responsible for sending heartbeats to slaves before a timeout period
+	The leader is responsible for sending heartbeats to slaves before a timeout period.
+	Upon receiving a heartbeat, the slave will set its term no to the leader's term no and will recet cycle no
 	If the slave timeouts, it will promote itself to a Candidate for election
 	*/
-	// TODO: Renew hearbeat counter here
+	glog.Info("Heartbeat check received from leader")
+	s.setTermNo(msg.TermNo)
+	s.setCycleNo(0)
 	return &pb.HeartBeatResp{Ack:true}, nil
 }
 

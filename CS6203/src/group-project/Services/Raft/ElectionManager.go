@@ -45,6 +45,12 @@ func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
 	return yesVotes >= (quorumSize / 2) +1
 }
 
+func (e *ElectionManager) votedComplete(votes []bool, quorumSize int) bool {
+	totalVotes := 0
+	for _, vote := range votes {if vote {totalVotes++}}
+	return totalVotes == quorumSize
+}
+
 func (e *ElectionManager) geTermNoRoutine() {
 	// Handles any request to get term number
 	for {
@@ -106,7 +112,14 @@ func (e ElectionManager) Start() {
 					e.setCandidateState(Follower)
 				}
 			} else if e.State == Leader {
-				glog.Info("In leader state")
+				glog.Info("In leader state forever. Heartbeating all slaves")
+				nodeLst, _ 		:= coordCli.GetNodes(e.BaseHashGroup)
+				beatChecks, _ 	:= coordCli.IssueHeartbeats(nodeLst, e.TermNo)
+				if !e.votedComplete(beatChecks, len(nodeLst)) {
+					// At least one heartbeat check returned false. We will have to force refresh node list
+					glog.Info("At least one slave heartbeat check returned false. Refreshing node list")
+					_ := coordCli.RefreshNodeList(e.BaseHashGroup)
+				}
 			}
 		}
 	}
