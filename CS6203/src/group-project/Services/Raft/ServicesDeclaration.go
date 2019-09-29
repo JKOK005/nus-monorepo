@@ -55,13 +55,14 @@ func (s *Server) HeartbeatCheck(ctx context.Context, msg *pb.HeartBeatMsg) (*pb.
 
 func (s *Server) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
 	/*
-	Executes a request to set a (key, val) pair into DB
+	TODO: Implement put key request and ensure replication of message
 	*/
-	if err := s.DbCli.Put(msg.Key, msg.Val); err != nil {
-		glog.Fatal(err)
-		return &pb.PutKeyResp{Ack:false}, err
-	}
-	return &pb.PutKeyResp{Ack:true}, nil
+}
+
+func (s *Server) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
+	/*
+	TODO: Implement get key request if slave, else forward key to slave if leader
+	*/
 }
 
 func (s *Server) ReceiveFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {

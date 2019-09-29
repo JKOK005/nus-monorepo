@@ -26,6 +26,10 @@ const (
 	Leader 		candidateState = 2
 )
 
+var (
+	coordCli 	*Coordinator
+)
+
 func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
 func (e *ElectionManager) setCycleNo(no uint32) bool {
 	glog.Info("Cycle no set to: ", no)
