@@ -27,18 +27,31 @@ service heartbeatService {
     rpc HeartbeatCheck(HeartBeatMsg) returns (HeartBeatResp);
 }
 
-// Statement replication
-message StatementReplicationMsg {
+// Key GET / PUT requests
+message PutKeyMsg {
     string key  = 1;
     bytes val   = 2;
 }
 
-message StatementReplicationResp {
+message PutKeyResp {
     bool ack = 1;
 }
 
-service StatementReplicationService {
-    rpc ReceiveReplication(StatementReplicationMsg) returns (StatementReplicationResp);
+service PutKeyService {
+    rpc PutKey(PutKeyMsg) returns (PutKeyResp);
+}
+
+message GetKeyMsg {
+    string key  = 1;
+}
+
+message GetKeyResp {
+    bool ack    = 1;
+    bytes val   = 2;
+}
+
+service GetKeyService {
+    rpc GetKey(GetKeyMsg) returns (GetKeyResp);
 }
 
 // Finger table replication
