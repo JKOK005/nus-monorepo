@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"group-project/Services/Raft"
 	dep "group-project/Utils"
+	"math/rand"
 	"sync"
 	"flag"
 )
@@ -48,9 +49,14 @@ func testRocksDb ()  {
 func main () {
 	flag.Parse()  // Needed for glog
 
-	nodeAddr := dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
-	nodePort := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8000))
-	dbCli, _ := dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
+	nodeAddr 		:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
+	nodePort 		:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8000))
+	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", 1))
+	cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
+	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
+	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
+	startingState 	:= Raft.Follower
+	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -59,8 +65,8 @@ func main () {
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort, DbCli: dbCli}.Start()
 
 	// Start up state manager
-	go Raft.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: 11, CycleNo: 0,
-							 CyclesToTimeout: 10, CycleTimeMs: 1000, State: Raft.Follower}.Start()
+	go Raft.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
+							 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
 
 	wg.Wait()
 }
