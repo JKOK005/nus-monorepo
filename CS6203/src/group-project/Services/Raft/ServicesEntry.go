@@ -5,14 +5,12 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	pb "group-project/Protobuf/Generate"
-	"group-project/Utils"
 	"net"
 )
 
 type Server struct {
 	NodeAddr 	string
 	NodePort 	uint32
-	DbCli 		*Utils.RocksDbClient
 }
 
 func (s Server) Start() {

@@ -53,21 +53,9 @@ func (s *Server) HeartbeatCheck(ctx context.Context, msg *pb.HeartBeatMsg) (*pb.
 	return &pb.HeartBeatResp{Ack:true}, nil
 }
 
-func (s *Server) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
+func (s *Server) UpdateFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
 	/*
-	TODO: Implement put key request and ensure replication of message
-	*/
-}
-
-func (s *Server) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
-	/*
-	TODO: Implement get key request if slave, else forward key to slave if leader
-	*/
-}
-
-func (s *Server) ReceiveFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
-	/*
-	Executes a request to update Finger Table
+		Executes a request to update Finger Table
 	*/
 	return nil, nil
 }

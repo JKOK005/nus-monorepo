@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"group-project/Services/DB"
 	"group-project/Services/Raft"
 	dep "group-project/Utils"
 	"math/rand"
@@ -61,8 +62,13 @@ func main () {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
+	// Start up DB Client
+	go DB.DbManager{DbCli:dbCli}.Start()
+
+	// TODO: Register client services
+
 	// Start up server to register all gRPC services
-	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort, DbCli: dbCli}.Start()
+	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
 	// Start up state manager
 	go Raft.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
