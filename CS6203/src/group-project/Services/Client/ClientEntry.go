@@ -17,7 +17,7 @@ func (c Client) Start() {
 	/*
 		Starts the RAFT GRPC server that listens to incoming requests
 	*/
-	glog.Infof("Starting server at %s:%d", c.NodeAddr, c.NodePort)
+	glog.Infof("Starting client at %s:%d", c.NodeAddr, c.NodePort)
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", c.NodeAddr, c.NodePort))
 	if err != nil {glog.Fatal(err); panic(err)}
 
