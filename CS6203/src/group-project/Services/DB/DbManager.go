@@ -1,6 +1,7 @@
 package DB
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"group-project/Utils"
 	pb "group-project/Protobuf/Generate"
@@ -14,6 +15,7 @@ func (d *DbManager) putKey(key string, val []byte) (bool, error) {
 	/*
 	Inserts key into DB
 	*/
+	glog.Info(fmt.Sprintf("Put key request - key: %s, value: %s", key, string(val)))
 	if err := d.DbCli.Put(key, val); err != nil {
 		glog.Fatal(err)
 		return false, err
@@ -25,8 +27,9 @@ func (d *DbManager) getKey(key string) ([]byte, bool) {
 	/*
 	Attempts to get key. If key does not exist, returns false
 	*/
+	glog.Info(fmt.Sprintf("Get key request - key: %s", key))
 	val, _ := d.DbCli.Get(key)
-	if len(val) > 0 {return nil, false}
+	if len(val) == 0 {return nil, false}
 	return val, true
 }
 
