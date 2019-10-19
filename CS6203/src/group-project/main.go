@@ -1,13 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"group-project/Services/Client"
 	"group-project/Services/DB"
+	"group-project/Services/Election"
 	"group-project/Services/Raft"
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
-	"flag"
 )
 
 func testRocksDb ()  {
@@ -56,7 +58,7 @@ func main () {
 	cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
 	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
-	startingState 	:= Raft.Follower
+	startingState 	:= Election.Follower
 	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 
 	var wg sync.WaitGroup
@@ -65,13 +67,14 @@ func main () {
 	// Start up DB Client
 	go DB.DbManager{DbCli:dbCli}.Start()
 
-	// TODO: Register client services
+	// Register client services
+	go Client.Client{NodeAddr: nodeAddr, NodePort: nodePort +1}.Start()
 
 	// Start up server to register all gRPC services
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
 	// Start up state manager
-	go Raft.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
+	go Election.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
 							 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
 
 	wg.Wait()

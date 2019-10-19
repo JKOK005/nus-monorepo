@@ -7,9 +7,7 @@ import (
 	"group-project/Utils"
 )
 
-type Client struct {}
-
-func (c *Client) PutKeyService(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
+func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
 	/*
 	TODO: Check that the request is a legit request for the node, else we forward it to somewhere else
 	TODO: Implement replication to slave nodes
@@ -20,7 +18,7 @@ func (c *Client) PutKeyService(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutK
 	return &pb.PutKeyResp{Ack:isSuccess}, nil
 }
 
-func (c *Client) GetKeyService(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
+func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
 	/*
 	TODO: Check that the request is a legit request for the node, else we forward it to somewhere else
 	TODO: Implement get key request if slave, else forward key to slave if leader
@@ -29,11 +27,4 @@ func (c *Client) GetKeyService(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetK
 	Utils.GetKeyChannel.ReqCh <- msg.Key
 	resp := <-Utils.GetKeyChannel.RespCh
 	return resp, nil
-}
-
-func (c *Client) Start() {
-	/*
-	TODO: Register client services
-	*/
-	glog.Info("Client services starting up")
 }
