@@ -15,7 +15,7 @@ type ElectionManager struct {
 	BaseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
 	TermNo 			uint32					// Present term number
 	CycleNo 		uint32					// Present cycle number
-	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo //TODO: Introduce randomized timeout to resolve multiple candidates contesting for votes state
+	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo
 	CycleTimeMs 	uint32 					// Cycle time for the start loop
 	State 			candidateState 			// Present state
 }
