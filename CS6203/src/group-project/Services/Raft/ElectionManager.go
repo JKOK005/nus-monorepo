@@ -1,32 +1,33 @@
 package Raft
 
 import (
-	"github.com/golang/glog"
 	util "group-project/Utils"
 	"math"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 type candidateState uint8
 
 type ElectionManager struct {
-	NodeAddr 		string 					// Node address
-	NodePort 		uint32 					// Node port
-	BaseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
-	TermNo 			uint32					// Present term number
-	CycleNo 		uint32					// Present cycle number
-	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo //TODO: Introduce randomized timeout to resolve multiple candidates contesting for votes state
-	CycleTimeMs 	uint32 					// Cycle time for the start loop
-	State 			candidateState 			// Present state
+	NodeAddr        string         // Node address
+	NodePort        uint32         // Node port
+	BaseHashGroup   uint32         // Base hash number for a group group (This will be registered in ZK)
+	TermNo          uint32         // Present term number
+	CycleNo         uint32         // Present cycle number
+	CyclesToTimeout uint32         // We declare a timeout if cyclesToTimeout > cycleNo //TODO: Introduce randomized timeout to resolve multiple candidates contesting for votes state
+	CycleTimeMs     uint32         // Cycle time for the start loop
+	State           candidateState // Present state
 }
 
 const (
-	Follower 	candidateState = 0
-	Candidate 	candidateState = 1
-	Leader 		candidateState = 2
+	Follower  candidateState = 0
+	Candidate candidateState = 1
+	Leader    candidateState = 2
 )
 
-func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
+func (e *ElectionManager) setCandidateState(state candidateState) { e.State = state }
 func (e *ElectionManager) setCycleNo(no uint32) bool {
 	glog.Info("Cycle no set to: ", no)
 	e.CycleNo = no
@@ -41,14 +42,22 @@ func (e *ElectionManager) setTermNo(no uint32) bool {
 
 func (e *ElectionManager) votedMajority(votes []bool, quorumSize int) bool {
 	yesVotes := 1 // Node votes for itself by default
-	for _, vote := range votes {if vote {yesVotes++}}
-	return yesVotes >= (quorumSize / 2) +1
+	for _, vote := range votes {
+		if vote {
+			yesVotes++
+		}
+	}
+	return yesVotes >= (quorumSize/2)+1
 }
 
 func (e *ElectionManager) votedComplete(votes []bool, quorumSize int) bool {
 	glog.Info("Heartbeats: ", votes)
 	totalVotes := 0
-	for _, vote := range votes {if vote {totalVotes++}}
+	for _, vote := range votes {
+		if vote {
+			totalVotes++
+		}
+	}
 	return totalVotes == quorumSize
 }
 
@@ -87,7 +96,10 @@ func (e *ElectionManager) setCycleNoRoutine() {
 
 func (e ElectionManager) Start() {
 	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
-	if err != nil {glog.Fatal(err); panic(err)}
+	if err != nil {
+		glog.Fatal(err)
+		panic(err)
+	}
 
 	go e.getTermNoRoutine()
 	go e.setTermNoRoutine()
@@ -95,7 +107,7 @@ func (e ElectionManager) Start() {
 
 	for {
 		select {
-		case <- time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
+		case <-time.NewTicker(time.Duration(e.CycleTimeMs) * time.Millisecond).C:
 			if e.State == Follower {
 				select {
 				case termNo := <-util.SetTermNoCh.ReqCh:
@@ -104,17 +116,17 @@ func (e ElectionManager) Start() {
 					e.setCycleNo(0)
 				default:
 					if e.CycleNo > e.CyclesToTimeout {
-						e.setTermNo(e.TermNo +1) // Increments term no and transit to candidate status
+						e.setTermNo(e.TermNo + 1) // Increments term no and transit to candidate status
 						e.setCandidateState(Candidate)
 						e.setCycleNo(0)
 					}
 					glog.Info("In follower state. Cycle no: ", e.CycleNo)
 				}
-				e.setCycleNo(e.CycleNo +1) // Increments cycle counter in follower state
+				e.setCycleNo(e.CycleNo + 1) // Increments cycle counter in follower state
 			} else if e.State == Candidate {
 				glog.Info("In candidate state and requesting for votes")
-				nodeLst, _ 		:= coordCli.GetNodes(e.BaseHashGroup)
-				votes, _ 		:= coordCli.RequestVotes(nodeLst, e.TermNo)
+				nodeLst, _ := coordCli.GetNodes(e.BaseHashGroup)
+				votes, _ := coordCli.RequestVotes(nodeLst, e.TermNo)
 				glog.Infof("Quorum size: %d, Votes are: ", len(nodeLst), votes)
 				if e.votedMajority(votes, len(nodeLst)) {
 					glog.Info("Received majority of votes. Promoting to leader")
@@ -126,8 +138,8 @@ func (e ElectionManager) Start() {
 				}
 			} else if e.State == Leader {
 				glog.Info("In leader state forever. Heartbeating all slaves")
-				nodeLst, _ 		:= coordCli.GetNodes(e.BaseHashGroup)
-				beatChecks, _ 	:= coordCli.IssueHeartbeats(nodeLst, e.TermNo)
+				nodeLst, _ := coordCli.GetNodes(e.BaseHashGroup)
+				beatChecks, _ := coordCli.IssueHeartbeats(nodeLst, e.TermNo)
 				if !e.votedComplete(beatChecks, len(nodeLst)) {
 					// At least one heartbeat check returned false. We will have to force refresh node list
 					glog.Info("At least one slave heartbeat check returned false. Refreshing node list")
