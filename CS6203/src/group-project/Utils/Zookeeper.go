@@ -96,7 +96,7 @@ func (s SdClient) PrependFollowerPath(fromPath string) string {
 }
 
 func (s SdClient) GetNodePaths(from_path string) ([]string, error) {
-	glog.Info("GetNodePaths called at", from_path)
+	glog.Info("GetNodePaths called at ", from_path)
 	childs, _, err := s.conn.Children(from_path)
 	if err != nil {return nil, err}
 	return childs, nil
