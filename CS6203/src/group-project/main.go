@@ -1,6 +1,8 @@
 package main
 
 import (
+	util "group-project/Utils"
+
 	"flag"
 	"fmt"
 <<<<<<< HEAD
@@ -127,9 +129,42 @@ func main() {
 						  BaseHashGroup: 7}.Start()
 	go Chord.QueryManager{NodeAddr: nodeAddr, NodePort: nodePort4,
 				  		  BaseHashGroup: 10}.Start()
+<<<<<<< HEAD
 	// manager.Start()
 	// manager.HandleRequest(1)
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
+=======
+
+
+	time.Sleep(3 * time.Second)
+
+	// util.SetRequestChannel.ReqCh <-10
+	// time.Sleep(time.Second)
+
+	// util.SetRequestChannel.ReqCh <-7
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-4
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-1
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-10
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-7
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-4
+	// time.Sleep(time.Second)
+	//
+	// util.SetRequestChannel.ReqCh <-1
+	// time.Sleep(time.Second)
+
+	util.SetPutChannel.ReqCh <-1
+	time.Sleep(time.Second)
+>>>>>>> finger table lookup complete
 
 	wg.Wait()
 }

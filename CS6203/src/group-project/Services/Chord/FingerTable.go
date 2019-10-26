@@ -87,6 +87,19 @@ func (f *FingerTable) FillTable() {
 	f.Predecessor = f.ChoosePredecessor(baseHashGroupsInt)
 }
 
+
+func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
+									successors []uint32) (bool, []uint32) {
+	for _, eInt := range baseHashGroupsInt {
+		if eInt == uint32(value) {
+			successors = append(successors, eInt)
+			return true, successors
+		}
+	}
+	return false, successors
+}
+
+
 func (f *FingerTable) ChooseSuccessors(baseHashGroupsInt []uint32) []uint32 {
 
 	var successors []uint32
@@ -94,25 +107,20 @@ func (f *FingerTable) ChooseSuccessors(baseHashGroupsInt []uint32) []uint32 {
 	// nrSuccessors := uint32(len(baseHashGroupsInt) / 2)
 	highestBaseHashGroup := baseHashGroupsInt[len(baseHashGroupsInt)-1]
 	for i := uint32(0); i < f.NrSuccessors; i++ {
-		p := f.MyInfo.BaseHashGroup + uint32(math.Pow(2, float64(i)))
+		value := f.MyInfo.BaseHashGroup + uint32(math.Pow(2, float64(i)))
 		found := false
 		for found == false {
-			if p > highestBaseHashGroup {
-				p = p % highestBaseHashGroup
+			if value > highestBaseHashGroup {
+				value = value % highestBaseHashGroup
 			}
-			for _, eInt := range baseHashGroupsInt {
-				if eInt == uint32(p) {
-					// glog.Infof("match")
-					successors = append(successors, eInt)
-					found = true
-					break
-				}
-			}
-			p = p + 1
+			found, successors = f.findSuccessor(baseHashGroupsInt, value,
+												successors)
+			value = value + 1
 		}
 	}
 
-	glog.Info("Successors chosen: ", successors)
+	glog.Info(fmt.Sprint("Successors ", successors, " of ",
+						 f.MyInfo.BaseHashGroup))
 
 	return successors
 }

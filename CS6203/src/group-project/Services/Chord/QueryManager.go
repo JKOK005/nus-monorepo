@@ -1,8 +1,9 @@
 package Chord
 
 import (
+	util "group-project/Utils"
+
 	"fmt"
-	"math"
 	"github.com/golang/glog"
 )
 
@@ -17,27 +18,70 @@ func (q QueryManager) Start() {
 	q.FingerTable, _ = NewFingerTable(q.NodeAddr, q.NodePort, 3,
 									  q.BaseHashGroup)
 	q.FingerTable.FillTable()
+	q.HandleRequests()
+	q.HandlePuts()
 }
 
-func (q *QueryManager) HandleRequest(baseHashGroupSearched uint32) {
+func (q *QueryManager) searchFingerTable(baseHashGroupSearched uint32) {
 
-	found := false
-	// for _, baseHashGroup := range q.FingerTable.Successors {
-	// 	if baseHashGroupSearched == baseHashGroup {
-	// 		found = true
-	// 		glog.Infof("Found hashgroup")
-	// 	}
-	// }
+	smallestDiff := uint32(1e9)
+	closestHash := uint32(1e9)
+	highest := uint32(10)
+	var diff uint32
 
-	smallestDiff := math.Inf
-	closestHash := math.Inf
-	for _, baseHashGroup := range q.FingerTable.Successors {
-		diff =  baseHashGroupSearched - baseHashGroup
+	for _, baseHashGroupFound := range q.FingerTable.Successors {
+		if baseHashGroupSearched >= baseHashGroupFound {
+			diff = baseHashGroupSearched - baseHashGroupFound
+		} else {
+			diff = baseHashGroupSearched + (highest - baseHashGroupFound)
+		}
+
+		glog.Infof(fmt.Sprint(baseHashGroupSearched, baseHashGroupFound, diff))
+
 		if diff == 0 {
-			glog.Infof("Found hashgroup")
-			found = true
+			closestHash = baseHashGroupFound
+			glog.Infof(fmt.Sprint("Found hashgroup ", closestHash, " in table"))
+			return
 		} else if diff < smallestDiff {
-			closestHash = baseHashGroup
+			closestHash = baseHashGroupFound
+			glog.Infof(fmt.Sprint("Found closer hash ", closestHash))
+		}
+	}
+	glog.Infof(fmt.Sprint("Redirecting to ", closestHash))
+}
+
+
+func (q *QueryManager) search(baseHashGroupSearched uint32) {
+	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched,
+						  " from ", q.BaseHashGroup))
+
+	if baseHashGroupSearched == q.BaseHashGroup {
+		glog.Infof("Found hashgroup here")
+	} else {
+		q.searchFingerTable(baseHashGroupSearched)
+	}
+}
+
+func (q *QueryManager) HandleRequests() {
+
+	for {
+		select {
+		case baseHashGroupSearched := <-util.SetRequestChannel.ReqCh: {
+			q.search(baseHashGroupSearched)
+		}
+		default:
+		}
+	}
+
+}
+
+func (q *QueryManager) HandlePuts() {
+	for {
+		select {
+		case baseHashGroupSearched := <-util.SetPutChannel.ReqCh: {
+			q.search(baseHashGroupSearched)
+		}
+		default:
 		}
 	}
 }
