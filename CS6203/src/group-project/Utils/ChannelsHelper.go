@@ -15,11 +15,28 @@ type setCycleNoChannel struct {
 	RespCh 	chan bool
 }
 
+type setRequestChannel struct {
+	ReqCh	chan uint32
+	RespCh	chan bool
+}
+
+type setPutChannel struct {
+	ReqCh	chan uint32
+	RespCh	chan bool
+}
+
 /*
  Shared channels for all go routines to use for communication
  */
 var (
-	GetTermNoCh 	= &getTermNoChannel{ReqCh: make(chan bool), RespCh: make(chan uint32)}
-	SetTermNoCh 	= &setTermNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
-	SetCycleNoCh 	= &setCycleNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
+	GetTermNoCh 		= &getTermNoChannel{ReqCh: make(chan bool),
+											RespCh: make(chan uint32)}
+	SetTermNoCh 		= &setTermNoChannel{ReqCh: make(chan uint32),
+											RespCh: make(chan bool)}
+	SetCycleNoCh 		= &setCycleNoChannel{ReqCh: make(chan uint32),
+											 RespCh: make(chan bool)}
+	SetRequestChannel 	= &setRequestChannel{ReqCh: make(chan uint32),
+											 RespCh: make(chan bool)}
+	SetPutChannel 	 	= &setPutChannel{ReqCh: make(chan uint32),
+										 RespCh: make(chan bool)}
 )
