@@ -104,6 +104,7 @@ func (s SdClient) GetNodePaths(from_path string) ([]string, error) {
 
 func (s SdClient) GetNodeValue (from_path string) ([]byte, error) {
 	/* Passes in a node paths and returns the value of the node */
+	// glog.Info("GetNodeValue called at ", from_path)
 	data, _, err := s.conn.Get(from_path)
 	if err != nil {return nil, err}
 	return data, nil

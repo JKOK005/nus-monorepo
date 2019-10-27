@@ -18,12 +18,12 @@ type setCycleNoChannel struct {
 type setRequestChannel struct {
 	ReqCh	chan uint32
 	RespCh	chan bool
-}
+}	// Data retrieval request channel (for clients)
 
 type setPutChannel struct {
 	ReqCh	chan uint32
 	RespCh	chan bool
-}
+}	// Data storing put channel (for clients)
 
 /*
  Shared channels for all go routines to use for communication
