@@ -32,13 +32,17 @@ type getKeyChannel struct {
 type setRequestChannel struct {
 	ReqCh	chan uint32
 	RespCh	chan bool
-}
+}	// Data retrieval request channel (for clients)
 
 type setPutChannel struct {
 	ReqCh	chan uint32
 	RespCh	chan bool
+<<<<<<< HEAD
 >>>>>>> finger table lookup complete
 }
+=======
+}	// Data storing put channel (for clients)
+>>>>>>> corrected fingertable
 
 /*
 Shared channels for all go routines to use for communication

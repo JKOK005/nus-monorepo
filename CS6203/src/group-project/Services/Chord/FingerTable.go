@@ -28,7 +28,7 @@ type FingerTable struct {
 	MyInfo			*NodeInfo
 	NrSuccessors	uint32
 	Predecessor		[]uint32
-	Successors		[]uint32
+	Successors		[]NodeInfo
 }
 
 var (
@@ -62,7 +62,10 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 }
 
 func (f *FingerTable) FillTable() {
-
+	/*
+		Finds which baseHashGroups are populated (from Zookeeper)
+		Choose successors and predecessor to add to the finger table
+	*/
 	baseHashGroupsFound, _ := zkCli.GetNodePaths("/nodes")
 	var baseHashGroupsPopulated []string
 
@@ -83,16 +86,28 @@ func (f *FingerTable) FillTable() {
 	sort.Slice(baseHashGroupsInt, func(i,
 		j int) bool { return baseHashGroupsInt[i] < baseHashGroupsInt[j] })
 	glog.Info("BaseHashGroups populated: ", baseHashGroupsInt)
-	f.Successors = f.ChooseSuccessors(baseHashGroupsInt)
-	f.Predecessor = f.ChoosePredecessor(baseHashGroupsInt)
+
+	f.Successors = f.chooseSuccessors(baseHashGroupsInt)
+	// f.Predecessor = f.ChoosePredecessor(baseHashGroupsInt)
 }
 
 
 func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
-									successors []uint32) (bool, []uint32) {
+									successors []NodeInfo) (bool, []NodeInfo) {
+	/*
+		Iterate through list of baseHashGroups
+		Check if the baseHashGroup
+	*/
 	for _, eInt := range baseHashGroupsInt {
-		if eInt == uint32(value) {
-			successors = append(successors, eInt)
+		if eInt == value {
+			nodePaths, _ := zkCli.GetNodePaths(zkCli.
+									PrependNodePath(fmt.Sprintf("%d", eInt)))
+			// TODO determine which one is the leader
+			nodeData, _ := zkCli.GetNodeValue(zkCli.PrependNodePath(fmt.
+										Sprintf("%d/%s", eInt, nodePaths[0])))
+			nodeInfo := new(NodeInfo)
+			json.Unmarshal(nodeData, nodeInfo)
+			successors = append(successors, *nodeInfo)
 			return true, successors
 		}
 	}
@@ -100,11 +115,10 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 }
 
 
-func (f *FingerTable) ChooseSuccessors(baseHashGroupsInt []uint32) []uint32 {
+func (f *FingerTable) chooseSuccessors(baseHashGroupsInt []uint32) []NodeInfo {
 
-	var successors []uint32
+	var successors []NodeInfo
 
-	// nrSuccessors := uint32(len(baseHashGroupsInt) / 2)
 	highestBaseHashGroup := baseHashGroupsInt[len(baseHashGroupsInt)-1]
 	for i := uint32(0); i < f.NrSuccessors; i++ {
 		value := f.MyInfo.BaseHashGroup + uint32(math.Pow(2, float64(i)))
@@ -125,27 +139,26 @@ func (f *FingerTable) ChooseSuccessors(baseHashGroupsInt []uint32) []uint32 {
 	return successors
 }
 
-func (f * FingerTable) ChoosePredecessor(baseHashGroupsInt []uint32) []uint32 {
-
-	var predecessors []uint32
-
-	p := f.MyInfo.BaseHashGroup
-	highestBaseHashGroup := baseHashGroupsInt[len(baseHashGroupsInt)-1]
-	found := false
-	for found == false {
-		if p < 0 {
-			p = highestBaseHashGroup
-		}
-		for _, eInt := range baseHashGroupsInt {
-			if eInt == uint32(p) {
-				// eStr := strconv.FormatUint(uint64(eInt), 10)
-				predecessors = append(predecessors, eInt)
-				found = true
-				break
-			}
-		}
-		p = p - 1
-	}
-
-	return predecessors
-}
+// func (f * FingerTable) ChoosePredecessor(baseHashGroupsInt []uint32) []uint32 {
+//
+// 	var predecessors []uint32
+//
+// 	p := f.MyInfo.BaseHashGroup
+// 	highestBaseHashGroup := baseHashGroupsInt[len(baseHashGroupsInt)-1]
+// 	found := false
+// 	for found == false {
+// 		if p < 0 {
+// 			p = highestBaseHashGroup
+// 		}
+// 		for _, eInt := range baseHashGroupsInt {
+// 			if eInt == uint32(p) {
+// 				predecessors = append(predecessors, eInt)
+// 				found = true
+// 				break
+// 			}
+// 		}
+// 		p = p - 1
+// 	}
+//
+// 	return predecessors
+// }

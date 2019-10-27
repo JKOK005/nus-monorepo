@@ -67,6 +67,7 @@ func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
 		Returns the node value of a node registered under nodePath
 	*/
 	if unmarshalledNode, err := zkCli.GetNodeValue(nodePath); err != nil {
+		glog.Infof(fmt.Sprint(nodePath))
 		glog.Warning(err)
 		return nil, err
 	} else {

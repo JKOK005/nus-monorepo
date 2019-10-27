@@ -13,17 +13,26 @@ import (
 =======
 	"group-project/Services/Server"
 	// "group-project/Services/Raft"
+<<<<<<< HEAD
     "group-project/Services/Chord"
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
+=======
+	"group-project/Services/Chord"
+>>>>>>> corrected fingertable
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
 <<<<<<< HEAD
 =======
 	"time"
+<<<<<<< HEAD
 	// "os"
 	// "strconv"
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
+=======
+	"os"
+	"strconv"
+>>>>>>> corrected fingertable
 )
 
 func testRocksDb() {
@@ -66,10 +75,10 @@ func testRocksDb() {
 func main() {
 	flag.Parse() // Needed for glog
 
-	// port64, _ := strconv.ParseUint(os.Args[1], 10, 32)
-	// baseHash64, _ := strconv.ParseUint(os.Args[2], 10, 32)
-	// port := int(port64)
-	// baseHash := uint32(baseHash64)
+	port64, _ := strconv.ParseUint(os.Args[3], 10, 32)
+	baseHash64, _ := strconv.ParseUint(os.Args[2], 10, 32)
+	port := int(port64)
+	baseHash := uint32(baseHash64)
 
 <<<<<<< HEAD
 	nodeAddr 		:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
@@ -82,10 +91,7 @@ func main() {
 	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 =======
 	nodeAddr := dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
-	nodePort1 := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
-	nodePort2 := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8002))
-	nodePort3 := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8003))
-	nodePort4 := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8004))
+	nodePort := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", port))
 	dbCli, _ := dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
 
@@ -100,6 +106,7 @@ func main() {
 
 	// Start up server to register all gRPC services
 <<<<<<< HEAD
+<<<<<<< HEAD
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
 	// Start up state manager
@@ -113,14 +120,20 @@ func main() {
 	go Server.Server{NodeAddr: nodeAddr, NodePort: nodePort3,
 					 DbCli: dbCli}.Start()
 	go Server.Server{NodeAddr: nodeAddr, NodePort: nodePort4,
+=======
+	go Server.Server{NodeAddr: nodeAddr, NodePort: nodePort,
+>>>>>>> corrected fingertable
 					 DbCli: dbCli}.Start()
 
 	// Start up state manager
-	// go Raft.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: 11, CycleNo: 0,
-	// 	CyclesToTimeout: 10, CycleTimeMs: 1001, State: Raft.Follower}.Start()
+	// go Raft.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort,
+	// 						BaseHashGroup: baseHash, CycleNo: 0,
+	// 						CyclesToTimeout: 10, CycleTimeMs: 1001,
+	// 						State: Raft.Follower}.Start()
 
 	time.Sleep(time.Second)
 
+<<<<<<< HEAD
 	go Chord.QueryManager{NodeAddr: nodeAddr, NodePort: nodePort1,
 						  BaseHashGroup: 1}.Start()
 	go Chord.QueryManager{NodeAddr: nodeAddr, NodePort: nodePort2,
@@ -134,33 +147,16 @@ func main() {
 	// manager.HandleRequest(1)
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
 =======
+=======
+	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
+						  BaseHashGroup: baseHash}.Start()
+>>>>>>> corrected fingertable
 
 
 	time.Sleep(3 * time.Second)
 
-	// util.SetRequestChannel.ReqCh <-10
-	// time.Sleep(time.Second)
-
-	// util.SetRequestChannel.ReqCh <-7
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-4
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-1
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-10
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-7
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-4
-	// time.Sleep(time.Second)
-	//
-	// util.SetRequestChannel.ReqCh <-1
-	// time.Sleep(time.Second)
+	util.SetRequestChannel.ReqCh <-4
+	time.Sleep(time.Second)
 
 	util.SetPutChannel.ReqCh <-1
 	time.Sleep(time.Second)
