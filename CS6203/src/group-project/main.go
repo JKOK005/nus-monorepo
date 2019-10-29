@@ -59,6 +59,7 @@ func main() {
 	baseHash64, _ := strconv.ParseUint(os.Args[2], 10, 32)
 	port := int(port64)
 	baseHash := uint32(baseHash64)
+	nrSuccessors := uint32(3)
 
 	nodeAddr := dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	nodePort := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", port))
@@ -80,7 +81,8 @@ func main() {
 	time.Sleep(time.Second)
 
 	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
-						  BaseHashGroup: baseHash}.Start()
+						  NrSuccessors : nrSuccessors, BaseHashGroup: baseHash}.
+						  Start()
 
 
 	time.Sleep(3 * time.Second)

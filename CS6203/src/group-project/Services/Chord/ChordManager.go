@@ -12,18 +12,19 @@ type ChordManager struct {
 	NodeAddr		string
 	NodePort		uint32
 	BaseHashGroup	uint32
+	NrSuccessors	uint32
 	FingerTable		*FingerTable
 }
 
 func (c ChordManager) Start() {
-	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, 3,
+	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.NrSuccessors,
 									  c.BaseHashGroup)
 	c.FingerTable.FillTable()
 	c.HandleRequests()
 	c.HandlePuts()
 }
 
-func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) {
+func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) uint32 {
 
 	smallestDiff := uint32(1e9)
 	closestHash := uint32(1e9)
@@ -40,32 +41,40 @@ func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) {
 		if diff == 0 {
 			closestHash = successor.BaseHashGroup
 			glog.Infof(fmt.Sprint("Found hashgroup ", closestHash, " in table"))
-			return
+			return closestHash
 		} else if diff < smallestDiff {
 			closestHash = successor.BaseHashGroup
-			glog.Infof(fmt.Sprint("Found closer hash ", closestHash))
+			glog.Infof(fmt.Sprint("Found closer hash ", successor))
 		}
 	}
 	glog.Infof(fmt.Sprint("Redirecting to ", closestHash))
+
+	return closestHash
 }
 
 
-func (c *ChordManager) search(baseHashGroupSearched uint32) {
+func (c *ChordManager) search(baseHashGroupSearched uint32) uint32 {
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched,
 						  " from ", c.BaseHashGroup))
 
+	var closestHash uint32
+
 	if baseHashGroupSearched == c.BaseHashGroup {
 		glog.Infof("Found hashgroup here")
+		closestHash = c.BaseHashGroup
 	} else {
-		c.searchFingerTable(baseHashGroupSearched)
+		closestHash = c.searchFingerTable(baseHashGroupSearched)
 	}
+
+	return closestHash
 }
 
 func (c *ChordManager) HandleRequests() {
 	for {
 		select {
 		case baseHashGroupSearched := <-util.SetRequestChannel.ReqCh: {
-			c.search(baseHashGroupSearched)
+			closestHash := c.search(baseHashGroupSearched)
+			glog.Info(fmt.Sprint("Closest hash ", closestHash))
 		}
 		default:
 		}
@@ -76,9 +85,14 @@ func (c *ChordManager) HandlePuts() {
 	for {
 		select {
 		case baseHashGroupSearched := <-util.SetPutChannel.ReqCh: {
-			c.search(baseHashGroupSearched)
+			closestHash := c.search(baseHashGroupSearched)
+			glog.Info(fmt.Sprint("Closest hash ", closestHash))
 		}
 		default:
 		}
 	}
+}
+
+func (c *ChordManager) ServerLeaving(baseHashGroup uint32) {
+	c.FingerTable.FillTable()
 }
