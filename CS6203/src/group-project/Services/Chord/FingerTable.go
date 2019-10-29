@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"sort"
 	"math"
-	"group-project/Utils"
+	util "group-project/Utils"
 
 	"github.com/golang/glog"
-	"group-project/Services/Raft"
+	// "group-project/Services/Election"
 )
 
 // type NodeInfo struct {
@@ -25,16 +25,17 @@ import (
 // 	BaseHashGroup	uint32
 // }
 
-NodeInfo := raft.NodeInfo
+// var NodeInfo = Election.NodeInfo
 
 type FingerTable struct {
-	MyInfo			*NodeInfo
+	MyInfo			*util.ChannelsNodeInfo
 	NrSuccessors	uint32
-	Successors		map[uint32]NodeInfo
+	Successors		map[uint32]util.ChannelsNodeInfo
+	BaseHashGroup 	uint32
 }
 
 var (
-	zkCli 			*Utils.SdClient
+	zkCli 			*util.SdClient
 )
 
 func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
@@ -43,13 +44,12 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		Creates a new FingerTable struct and returns to the user
 		Also initializes node path in Zookeeper
 	*/
-	if zookeeperCli, err := Utils.NewZkClient(); err != nil {
+	if zookeeperCli, err := util.NewZkClient(); err != nil {
 		glog.Error(err)
 		return nil, err
 	} else {
 		glog.Infof("Building finger table %s:%d", myAddr, myPort)
-		nodeObj := &NodeInfo{Addr: myAddr, Port: myPort,
-							 BaseHashGroup: baseHashGroup}
+		nodeObj := &util.ChannelsNodeInfo{Addr: myAddr, Port: myPort}
 		data, _ := json.Marshal(nodeObj)
 		glog.Info(string(data))
 		err = zookeeperCli.RegisterEphemeralNode(zookeeperCli.
@@ -59,7 +59,8 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		}
 		zkCli = zookeeperCli // Cache client
 		return &FingerTable{MyInfo: nodeObj, NrSuccessors: nrSuccessors,
-							Successors: make(map[uint32]NodeInfo)}, nil
+							Successors: make(map[uint32]util.ChannelsNodeInfo),
+							BaseHashGroup: baseHashGroup}, nil
 	}
 }
 
@@ -95,7 +96,7 @@ func (f *FingerTable) FillTable() {
 
 
 func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
-									successors map[uint32]NodeInfo) bool {
+									successors map[uint32]util.ChannelsNodeInfo) bool {
 	/*
 		Iterate through list of baseHashGroups
 		Check if the baseHashGroup ...
@@ -107,10 +108,9 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 			// TODO determine which one is the leader
 			nodeData, _ := zkCli.GetNodeValue(zkCli.PrependNodePath(fmt.
 										Sprintf("%d/%s", eInt, nodePaths[0])))
-			nodeInfo := new(NodeInfo)
+			nodeInfo := new(util.ChannelsNodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			successors[eInt] = *nodeInfo
-			// successors = append(successors, *nodeInfo)
 			return true
 		}
 	}
@@ -122,7 +122,7 @@ func (f *FingerTable) chooseSuccessors(baseHashGroupsInt []uint32) {
 
 	highestBaseHashGroup := uint32(10) // will be based on hash function
 	for i := uint32(0); i < f.NrSuccessors; i++ {
-		value := f.MyInfo.BaseHashGroup + uint32(math.Pow(2, float64(i)))
+		value := f.BaseHashGroup + uint32(math.Pow(2, float64(i)))
 		found := false
 		for found == false {
 			if value > highestBaseHashGroup {
@@ -132,31 +132,9 @@ func (f *FingerTable) chooseSuccessors(baseHashGroupsInt []uint32) {
 			value = value + 1
 		}
 	}
-
-	glog.Info(fmt.Sprint("Successors ", f.Successors, " of ",
-						 f.MyInfo.BaseHashGroup))
+	glog.Info(fmt.Sprint("Successors ", f.Successors, " of ", f.BaseHashGroup))
 }
 
-// func (f * FingerTable) ChoosePredecessor(baseHashGroupsInt []uint32) []uint32 {
-//
-// 	var predecessors []uint32
-//
-// 	p := f.MyInfo.BaseHashGroup
-// 	highestBaseHashGroup := baseHashGroupsInt[len(baseHashGroupsInt)-1]
-// 	found := false
-// 	for found == false {
-// 		if p < 0 {
-// 			p = highestBaseHashGroup
-// 		}
-// 		for _, eInt := range baseHashGroupsInt {
-// 			if eInt == uint32(p) {
-// 				predecessors = append(predecessors, eInt)
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 		p = p - 1
-// 	}
-//
-// 	return predecessors
-// }
+func (f *FingerTable) ServerLeaving(baseHashGroup uint32) {
+	delete(f.Successors, baseHashGroup)
+}

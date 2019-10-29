@@ -11,7 +11,6 @@ import (
 type candidateState uint8
 
 type ElectionManager struct {
-<<<<<<< HEAD:CS6203/src/group-project/Services/Election/ElectionManager.go
 	NodeAddr 		string 					// Node address
 	NodePort 		uint32 					// Node port
 	BaseHashGroup 	uint32 					// Base hash number for a group group (This will be registered in ZK)
@@ -20,16 +19,6 @@ type ElectionManager struct {
 	CyclesToTimeout uint32					// We declare a timeout if cyclesToTimeout > cycleNo
 	CycleTimeMs 	uint32 					// Cycle time for the start loop
 	State 			candidateState 			// Present state
-=======
-	NodeAddr        string         // Node address
-	NodePort        uint32         // Node port
-	BaseHashGroup   uint32         // Base hash number for a group group (This will be registered in ZK)
-	TermNo          uint32         // Present term number
-	CycleNo         uint32         // Present cycle number
-	CyclesToTimeout uint32         // We declare a timeout if cyclesToTimeout > cycleNo //TODO: Introduce randomized timeout to resolve multiple candidates contesting for votes state
-	CycleTimeMs     uint32         // Cycle time for the start loop
-	State           candidateState // Present state
->>>>>>> Querymanager and FingerTable implementation (incomplete):CS6203/src/group-project/Services/Raft/ElectionManager.go
 }
 
 const (
@@ -38,15 +27,11 @@ const (
 	Leader    candidateState = 2
 )
 
-<<<<<<< HEAD:CS6203/src/group-project/Services/Election/ElectionManager.go
 var (
 	coordCli 	*Coordinator
 )
 
 func (e *ElectionManager) setCandidateState(state candidateState) {e.State = state}
-=======
-func (e *ElectionManager) setCandidateState(state candidateState) { e.State = state }
->>>>>>> Querymanager and FingerTable implementation (incomplete):CS6203/src/group-project/Services/Raft/ElectionManager.go
 func (e *ElectionManager) setCycleNo(no uint32) bool {
 	glog.Info("Cycle no set to: ", no)
 	e.CycleNo = no

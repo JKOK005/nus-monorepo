@@ -56,20 +56,6 @@ func (s *Server) HeartbeatCheck(ctx context.Context, msg *pb.HeartBeatMsg) (*pb.
 
 func (s *Server) UpdateFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
 	/*
-<<<<<<< HEAD:CS6203/src/group-project/Services/Raft/ServicesDeclaration.go
-=======
-		Executes a request to set a (key, val) pair into DB
-	*/
-	if err := s.DbCli.Put(msg.Key, msg.Val); err != nil {
-		glog.Fatal(err)
-		return &pb.StatementReplicationResp{Ack: false}, err
-	}
-	return &pb.StatementReplicationResp{Ack: true}, nil
-}
-
-func (s *Server) ReceiveFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
-	/*
->>>>>>> Querymanager and FingerTable implementation (incomplete):CS6203/src/group-project/Services/Server/ServicesDeclaration.go
 		Executes a request to update Finger Table
 	*/
 	return nil, nil

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	// "google.golang.org/grpc"
+	// "group-project/Services/Election"
 )
 
 type ChordManager struct {
@@ -20,79 +21,72 @@ func (c ChordManager) Start() {
 	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.NrSuccessors,
 									  c.BaseHashGroup)
 	c.FingerTable.FillTable()
-	c.HandleRequests()
-	c.HandlePuts()
+	c.Routing()
+	glog.Info("sdfsdfsdfsdfsdf")
 }
 
-func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) uint32 {
+func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) util.ChannelsNodeInfo {
 
 	smallestDiff := uint32(1e9)
 	closestHash := uint32(1e9)
 	highest := uint32(10)
 	var diff uint32
+	var closestSuccessor util.ChannelsNodeInfo
 
-	for _, successor := range c.FingerTable.Successors {
-		if baseHashGroupSearched >= successor.BaseHashGroup {
-			diff = baseHashGroupSearched - successor.BaseHashGroup
+	for baseHashGroup, successor := range c.FingerTable.Successors {
+		if baseHashGroupSearched >=  baseHashGroup {
+			diff = baseHashGroupSearched - baseHashGroup
 		} else {
-			diff = baseHashGroupSearched + (highest - successor.BaseHashGroup)
+			diff = baseHashGroupSearched + (highest - baseHashGroup)
 		}
 
 		if diff == 0 {
-			closestHash = successor.BaseHashGroup
+			closestHash = baseHashGroup
 			glog.Infof(fmt.Sprint("Found hashgroup ", closestHash, " in table"))
-			return closestHash
+			return successor
 		} else if diff < smallestDiff {
-			closestHash = successor.BaseHashGroup
+			closestHash = baseHashGroup
+			closestSuccessor = successor
 			glog.Infof(fmt.Sprint("Found closer hash ", successor))
 		}
+		closestSuccessor = successor
 	}
 	glog.Infof(fmt.Sprint("Redirecting to ", closestHash))
 
-	return closestHash
+	return closestSuccessor
 }
 
 
-func (c *ChordManager) search(baseHashGroupSearched uint32) uint32 {
+func (c *ChordManager) search(baseHashGroupSearched uint32) util.ChannelsNodeInfo {
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched,
 						  " from ", c.BaseHashGroup))
 
-	var closestHash uint32
+	var closestSuccessor util.ChannelsNodeInfo
 
 	if baseHashGroupSearched == c.BaseHashGroup {
 		glog.Infof("Found hashgroup here")
-		closestHash = c.BaseHashGroup
+		nodeObj := util.ChannelsNodeInfo{Addr: c.NodeAddr, Port: c.NodePort}
+		closestSuccessor = nodeObj
 	} else {
-		closestHash = c.searchFingerTable(baseHashGroupSearched)
+		closestSuccessor = c.searchFingerTable(baseHashGroupSearched)
 	}
-	return closestHash
+	return closestSuccessor
 }
 
-func (c *ChordManager) HandleRequests() {
+func (c *ChordManager) Routing() {
 	for {
 		select {
-		case baseHashGroupSearched := <-util.SetRequestChannel.ReqCh: {
-			closestHash := c.search(baseHashGroupSearched)
-			glog.Info(fmt.Sprint("Closest hash ", closestHash))
+		case baseHashGroupSearched := <-util.ChordRoutingChannel.RespCh: {
+			closestSuccessor := c.search(2)
+			glog.Info("\n\n\n\n 1", baseHashGroupSearched)
+			glog.Info(closestSuccessor)
+			util.ChordRoutingChannel.ReqCh <- 2
+			glog.Info("\n\n\n\n 2")
+			glog.Info(fmt.Sprint("Closest server ",
+								 <-util.ChordRoutingChannel.ReqCh))
+			glog.Info(fmt.Sprint(closestSuccessor))
 		}
 		default:
 		}
 	}
-}
-
-func (c *ChordManager) HandlePuts() {
-	for {
-		select {
-		case baseHashGroupSearched := <-util.SetPutChannel.ReqCh: {
-			closestHash := c.search(baseHashGroupSearched)
-			glog.Info(fmt.Sprint("Closest hash ", closestHash))
-		}
-		default:
-		}
-	}
-}
-
-func (c *ChordManager) ServerLeaving(baseHashGroup uint32) {
-	// c.FingerTable
-	c.FingerTable.FillTable()
 }
