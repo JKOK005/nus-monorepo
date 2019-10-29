@@ -1,4 +1,4 @@
-package Raft
+package Election
 
 import (
 	util "group-project/Utils"

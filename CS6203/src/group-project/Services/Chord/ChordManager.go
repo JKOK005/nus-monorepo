@@ -65,7 +65,6 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) uint32 {
 	} else {
 		closestHash = c.searchFingerTable(baseHashGroupSearched)
 	}
-
 	return closestHash
 }
 
@@ -94,5 +93,6 @@ func (c *ChordManager) HandlePuts() {
 }
 
 func (c *ChordManager) ServerLeaving(baseHashGroup uint32) {
+	// c.FingerTable
 	c.FingerTable.FillTable()
 }

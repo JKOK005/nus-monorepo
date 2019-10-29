@@ -5,8 +5,8 @@ import (
 
 	"flag"
 	"fmt"
-	"group-project/Services/Server"
-	// "group-project/Services/Raft"
+	"group-project/Services/Raft"
+	// "group-project/Services/Election"
 	"group-project/Services/Chord"
 	dep "group-project/Utils"
 	"sync"
@@ -69,8 +69,8 @@ func main() {
 	wg.Add(1)
 
 	// Start up server to register all gRPC services
-	go Server.Server{NodeAddr: nodeAddr, NodePort: nodePort,
-					 DbCli: dbCli}.Start()
+	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort,
+				   DbCli: dbCli}.Start()
 
 	// Start up state manager
 	// go Raft.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort,

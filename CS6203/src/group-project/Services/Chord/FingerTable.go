@@ -16,13 +16,16 @@ import (
 	"group-project/Utils"
 
 	"github.com/golang/glog"
+	"group-project/Services/Raft"
 )
 
-type NodeInfo struct {
-	Addr			string
-	Port			uint32
-	BaseHashGroup	uint32
-}
+// type NodeInfo struct {
+// 	Addr			string
+// 	Port			uint32
+// 	BaseHashGroup	uint32
+// }
+
+NodeInfo := raft.NodeInfo
 
 type FingerTable struct {
 	MyInfo			*NodeInfo
