@@ -53,20 +53,9 @@ func (s *Server) HeartbeatCheck(ctx context.Context, msg *pb.HeartBeatMsg) (*pb.
 	return &pb.HeartBeatResp{Ack:true}, nil
 }
 
-func (s *Server) ReceiveReplication(ctx context.Context, msg *pb.StatementReplicationMsg) (*pb.StatementReplicationResp, error) {
+func (s *Server) UpdateFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
 	/*
-	Executes a request to set a (key, val) pair into DB
-	*/
-	if err := s.DbCli.Put(msg.Key, msg.Val); err != nil {
-		glog.Fatal(err)
-		return &pb.StatementReplicationResp{Ack:false}, err
-	}
-	return &pb.StatementReplicationResp{Ack:true}, nil
-}
-
-func (s *Server) ReceiveFingerTable(ctx context.Context, msg *pb.FingerTableReplicationMsg) (*pb.FingerTableReplicationResp, error) {
-	/*
-	Executes a request to update Finger Table
+		Executes a request to update Finger Table
 	*/
 	return nil, nil
 }
