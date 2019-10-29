@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"group-project/Services/Client"
 	"group-project/Services/DB"
 	"group-project/Services/Election"
@@ -17,6 +18,10 @@ import (
     "group-project/Services/Chord"
 >>>>>>> Querymanager and FingerTable implementation (incomplete)
 =======
+=======
+	"group-project/Services/Raft"
+	// "group-project/Services/Election"
+>>>>>>> prepare for merger
 	"group-project/Services/Chord"
 >>>>>>> corrected fingertable
 	dep "group-project/Utils"
@@ -108,6 +113,7 @@ func main() {
 	// Start up server to register all gRPC services
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
 	// Start up state manager
@@ -125,6 +131,10 @@ func main() {
 	go Server.Server{NodeAddr: nodeAddr, NodePort: nodePort,
 >>>>>>> corrected fingertable
 					 DbCli: dbCli}.Start()
+=======
+	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort,
+				   DbCli: dbCli}.Start()
+>>>>>>> prepare for merger
 
 	// Start up state manager
 	// go Raft.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort,

@@ -1,4 +1,4 @@
-package Server
+package Raft
 
 import (
 	"fmt"
