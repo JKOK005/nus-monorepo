@@ -79,6 +79,7 @@ func main() {
 	baseHash64, _ := strconv.ParseUint(os.Args[2], 10, 32)
 	port := int(port64)
 	baseHash := uint32(baseHash64)
+	nrSuccessors := uint32(3)
 
 <<<<<<< HEAD
 	nodeAddr 		:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
@@ -149,8 +150,13 @@ func main() {
 =======
 =======
 	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
+<<<<<<< HEAD
 						  BaseHashGroup: baseHash}.Start()
 >>>>>>> corrected fingertable
+=======
+						  NrSuccessors : nrSuccessors, BaseHashGroup: baseHash}.
+						  Start()
+>>>>>>> changed succesors list to map
 
 
 	time.Sleep(3 * time.Second)
