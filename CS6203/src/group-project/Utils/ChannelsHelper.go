@@ -36,8 +36,8 @@ type getKeyChannel struct {
 
 type chordRoutingChannel struct {
 	ReqCh	chan uint32
-	RespCh	chan bool
-}
+	RespCh	chan ChannelsNodeInfo
+}	// Receives hashgroup as request and returns server closest to the hash
 
 /*
 Shared channels for all go routines to use for communication
@@ -48,5 +48,5 @@ var (
 	SetCycleNoCh 		= &setCycleNoChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
 	PutKeyChannel 		= &putKeyChannel{ReqCh: make(chan *pb.PutKeyMsg), RespCh: make(chan bool)}
 	GetKeyChannel 		= &getKeyChannel{ReqCh: make(chan string), RespCh: make(chan *pb.GetKeyResp)}
-	ChordRoutingChannel = &chordRoutingChannel{ReqCh: make(chan uint32), RespCh: make(chan bool)}
+	ChordRoutingChannel = &chordRoutingChannel{ReqCh: make(chan uint32), RespCh: make(chan ChannelsNodeInfo)}
 )

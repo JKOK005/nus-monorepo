@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"group-project/Services/Client"
 	"group-project/Services/DB"
-	// "group-project/Services/Election"
+	"group-project/Services/Election"
 	"group-project/Services/Raft"
 	"group-project/Services/Chord"
 	dep "group-project/Utils"
-	// "math/rand"
+	"math/rand"
+	"time"
 	"sync"
 )
 
@@ -51,42 +52,53 @@ func testRocksDb() {
 }
 
 func main() {
-	flag.Parse() // Needed for glog
 
-	// port64, _ := strconv.ParseUint(os.Args[1], 10, 32)
-	// baseHash64, _ := strconv.ParseUint(os.Args[2], 10, 32)
-	// port := int(port64)
-	// baseHash := uint32(baseHash64)
+	port := flag.Int("port", 8000, "the port of the server, should be an int")
+	hash := flag.Int("hash", 1, "the hash of the server, should be an int")
+
+	flag.Parse()
 
 	nodeAddr 		:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
-	nodePort 		:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8000))
-	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", 1))
-	// cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
-	// cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
-	// cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
-	// startingState 	:= Election.Follower
+	nodePort 		:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", *port))
+	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", *hash))
+	cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
+	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
+	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
+	startingState 	:= Election.Follower
 	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	// Start up DB Client
-	go DB.DbManager{DbCli:dbCli}.Start()
+	go DB.DbManager{DbCli: dbCli}.Start()
 
 	// Register client services
 	go Client.Client{NodeAddr: nodeAddr, NodePort: nodePort +1}.Start()
 
-	// Start up server to register all gRPC services
+	// Start server to register all gRPC services
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
-	// // Start up state manager
-	// go Election.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
-	// 						 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
+	// Start up state manager
+	go Election.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
+							 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
 
-	// Start up chord mamager
-	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup,
-						  NrSuccessors: 3, FingerTable: nil}.Start()
+	// Start chord manager
+	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
+						  BaseHashGroup: baseHashGroup, NrSuccessors: 3,
+						  FingerTable: nil, HighestHash: uint32(10)}.Start()
 
-	dep.ChordRoutingChannel.RespCh <-true
+	time.Sleep(5 * time.Second)
+
+	go func() {	// For testing
+		dep.ChordRoutingChannel.ReqCh <-1
+		dep.ChordRoutingChannel.ReqCh <-2
+		dep.ChordRoutingChannel.ReqCh <-4
+		dep.ChordRoutingChannel.ReqCh <-1
+		dep.ChordRoutingChannel.ReqCh <-1
+		dep.ChordRoutingChannel.ReqCh <-4
+		dep.ChordRoutingChannel.ReqCh <-2
+	}()
+
 	wg.Wait()
 }
