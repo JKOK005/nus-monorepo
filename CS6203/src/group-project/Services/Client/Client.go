@@ -37,14 +37,15 @@ func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp,
 	/*
 	TODO: Implement get key request if slave, else forward key to slave if leader
 	*/
+	var resp *pb.GetKeyResp
 	glog.Info("Received request to GET key")
 	_ = c.locate(msg.Key)
 	if false {
 		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
+		resp = &pb.GetKeyResp{Ack:true, Val:nil}
 	} else {
-
+		Utils.GetKeyChannel.ReqCh <- msg.Key
+		resp = <-Utils.GetKeyChannel.RespCh
 	}
-	Utils.GetKeyChannel.ReqCh <- msg.Key
-	resp := <-Utils.GetKeyChannel.RespCh
 	return resp, nil
 }
