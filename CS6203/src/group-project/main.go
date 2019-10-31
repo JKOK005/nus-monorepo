@@ -7,6 +7,7 @@ import (
 	"group-project/Services/DB"
 	"group-project/Services/Election"
 	"group-project/Services/Raft"
+	"group-project/Services/Chord"
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
@@ -50,11 +51,15 @@ func testRocksDb ()  {
 }
 
 func main () {
+
+	port := flag.Int("port", 8000, "the port of the server, should be an int")
+	hash := flag.Int("hash", 1, "the hash of the server, should be an int")
+
 	flag.Parse()  // Needed for glog
 
 	nodeAddr 		:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
-	nodePort 		:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8000))
-	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", 1))
+	nodePort 		:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", *port))
+	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", *hash))
 	cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
 	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
@@ -76,6 +81,11 @@ func main () {
 	// Start up state manager
 	go Election.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
 							 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
+
+	 // Start chord manager
+	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
+	 					   BaseHashGroup: baseHashGroup, NrSuccessors: 3,
+	 					   FingerTable: nil, HighestHash: uint32(10)}.Start()
 
 	wg.Wait()
 }
