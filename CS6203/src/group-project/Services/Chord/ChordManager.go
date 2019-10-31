@@ -84,9 +84,7 @@ func (c *ChordManager) Routing() {
 		case baseHashGroupSearched := <-util.ChordRoutingChannel.ReqCh:
 			closestSuccessor := c.search(baseHashGroupSearched)
 			glog.Info(fmt.Sprint("Closest server ", closestSuccessor))
-			go func() {
-				util.ChordRoutingChannel.RespCh <- closestSuccessor
-			}()
+			util.ChordRoutingChannel.RespCh <- closestSuccessor
 		default:
 		}
 	}
