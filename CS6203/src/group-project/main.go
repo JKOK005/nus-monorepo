@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"group-project/Services/Chord"
 	"group-project/Services/Client"
 	"group-project/Services/DB"
 	"group-project/Services/Election"
 	"group-project/Services/Raft"
-	"group-project/Services/Chord"
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
