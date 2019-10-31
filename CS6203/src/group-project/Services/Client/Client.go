@@ -9,13 +9,23 @@ import (
 
 func (c *Client) locate(key string) Utils.ChannelsNodeInfo {
 	/*
-	Determines the hash group the key should be located at via CHORD
-	We first hash the raw key to obtain a hash group number.
-	We then query the Chord manager to determine if the key should be present locally or if it should be dispatched to a different address
+		Determines the hash group the key should be located at via CHORD
+		We first hash the raw key to obtain a hash group number.
+		We then query the Chord manager to determine if the key should be present locally or if it should be dispatched to a different address
 	*/
 	hashFnct := Utils.GetHashFunction()
 	Utils.ChordRoutingChannel.ReqCh <- hashFnct(key)
 	return <-Utils.ChordRoutingChannel.RespCh
+}
+
+func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.ChannelsNodeInfo) (*pb.PutKeyResp, error) {
+	// TODO: Placeholder for forwarding PUT requests to recipient node
+	return nil, nil
+}
+
+func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.ChannelsNodeInfo) (*pb.GetKeyResp, error) {
+	// TODO: Placeholder for forwarding GET requests to recipient node
+	return nil, nil
 }
 
 func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
