@@ -38,11 +38,6 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		nodeObj := &util.ChannelsNodeInfo{Addr: myAddr, Port: myPort}
 		data, _ := json.Marshal(nodeObj)
 		glog.Info(string(data))
-		err = zookeeperCli.RegisterEphemeralNode(zookeeperCli.
-					PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
-		if err != nil {
-			return nil, err
-		}
 		zkCli = zookeeperCli // Cache client
 		return &FingerTable{MyInfo: nodeObj, NrSuccessors: nrSuccessors,
 							Successors: make(map[uint32]util.ChannelsNodeInfo),
