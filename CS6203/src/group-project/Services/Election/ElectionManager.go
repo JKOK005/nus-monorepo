@@ -1,7 +1,6 @@
 package Election
 
 import (
-	"fmt"
 	"github.com/golang/glog"
 	util "group-project/Utils"
 	"math"
@@ -107,7 +106,6 @@ func (e *ElectionManager) startReplicationRoutine() {
 			} else {
 				// Else respond with result if slaves have received replication
 				nodeLst, _ 	:= coordCli.GetNodes(e.BaseHashGroup)
-				for _, nodePtr := range nodeLst {fmt.Println(nodePtr)}
 				util.ReplicationChannel.RespCh <- coordCli.ReplicateReqs(nodeLst, req)
 			}
 		default:
