@@ -19,6 +19,8 @@ func main() {
 	// TODO: Do not let client connect with a defined URL:PORT. Create a service that queries ZK for the details
 	bootstrap_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	bootstrap_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
+	bootstrap_replica_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
+	bootstrap_replica_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 9001))
 	pollTimeOutMs 	:= 10000
 
 	// Attempt to insert keys
@@ -43,7 +45,7 @@ func main() {
 
 	// Attempt to read keys back
 	for key := 0; key < attempts; key++ {
-		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_url, bootstrap_port), grpc.WithInsecure()); err != nil {
+		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_replica_url, bootstrap_replica_port), grpc.WithInsecure()); err != nil {
 			glog.Error(err)
 		} else {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
