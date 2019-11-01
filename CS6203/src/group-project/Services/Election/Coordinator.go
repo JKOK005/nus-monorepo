@@ -208,3 +208,41 @@ func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {
 	// TODO: Inform all nodes registered under /follower/<hash_no> that it is the new leader
 	return err
 }
+
+func (c *Coordinator) replicateReq(req *pb.PutKeyMsg, node *NodeInfo, respCh chan bool) {
+	/*
+		Issues replication request to a node via GRPC dail
+		Returns request success or fail in channel
+
+		TODO: 	Remove hack for (node.Port +1), since client ports are +1 from port by default
+				Got to think of a better way to communicate with the client moving forward
+
+	*/
+	status := false
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port +1), grpc.WithInsecure()); err != nil {
+		glog.Error(err)
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
+
+		client := pb.NewPutKeyServiceClient(conn)
+		if resp, err := client.PutKey(ctx, req); err != nil {
+			glog.Error(err)
+		} else {
+			status = resp.Ack
+		}
+	}
+	respCh <- status
+}
+
+func (c *Coordinator) ReplicateReqs(req *pb.PutKeyMsg) bool {
+	/*
+		Issues replication calls to all other nodes
+	*/
+	status := true
+	respCh := make (chan bool)
+	defer close(respCh)
+	for _, slave := range c.NodesInGroup {go c.replicateReq(req, slave, respCh)}
+	for range c.NodesInGroup {status = status && <-respCh} // If there is a false, status will be false
+	return status
+}

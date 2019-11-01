@@ -44,9 +44,6 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 }
 
 func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
-	/*
-	TODO: Implement get key request if slave, else forward key to slave if leader
-	*/
 	var resp *pb.GetKeyResp
 	glog.Info("Received request to GET key")
 	_ = c.locate(msg.Key)
