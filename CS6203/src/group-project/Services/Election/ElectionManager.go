@@ -100,7 +100,7 @@ func (e *ElectionManager) startReplicationRoutine() {
 	for {
 		select {
 		case req := <- util.ReplicationChannel.ReqCh:
-			glog.Warning("Replicating key")
+			glog.Info("Replicating key")
 			if e.State != Leader {
 				// Acknowledge if not leader
 				util.ReplicationChannel.RespCh <- true
