@@ -37,6 +37,7 @@ func (d *DbManager) putKeyRoutine() {
 	for {
 		select {
 		case msg := <- Utils.PutKeyChannel.ReqCh:
+			glog.Warning("Putting key in db")
 			if resp, err := d.putKey(msg.Key, msg.Val); err != nil {
 				Utils.PutKeyChannel.RespCh <- false
 			} else {

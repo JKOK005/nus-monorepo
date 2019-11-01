@@ -235,14 +235,23 @@ func (c *Coordinator) replicateReq(req *pb.PutKeyMsg, node *NodeInfo, respCh cha
 	respCh <- status
 }
 
-func (c *Coordinator) ReplicateReqs(req *pb.PutKeyMsg) bool {
+func (c *Coordinator) ReplicateReqs(nodes []*NodeInfo, req *pb.PutKeyMsg) bool {
 	/*
 		Issues replication calls to all other nodes
 	*/
 	status := true
 	respCh := make (chan bool)
 	defer close(respCh)
-	for _, slave := range c.NodesInGroup {go c.replicateReq(req, slave, respCh)}
-	for range c.NodesInGroup {status = status && <-respCh} // If there is a false, status will be false
+
+	for _, slave := range nodes {
+		if !(c.MyInfo.Addr == slave.Addr && c.MyInfo.Port == slave.Port) {
+			go c.replicateReq(req, slave, respCh)
+		} else {
+			// Do not replicate to own node again
+			// Simulate response as true
+			go func(){respCh <- true}()
+		}
+	}
+	for range nodes {status = status && <-respCh} // If there is a false, status will be false
 	return status
 }

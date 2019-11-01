@@ -30,15 +30,16 @@ func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.ChannelsNodeInfo)
 
 func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
 	var isSuccess bool
-	glog.Info("Received request to PUT key")
-	_ = c.locate(msg.Key)
+	glog.Warning("Received request to PUT key")
+	//_ = c.locate(msg.Key)
 	if false {
 		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
 		isSuccess = true
 	} else {
-		// TODO: Implement replication to slave nodes before reporting success
+		glog.Warning("Received request to PUT key")
 		Utils.PutKeyChannel.ReqCh <- msg
-		isSuccess = <-Utils.PutKeyChannel.RespCh
+		Utils.ReplicationChannel.ReqCh <- msg
+		isSuccess = <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh
 	}
 	return &pb.PutKeyResp{Ack:isSuccess}, nil
 }
