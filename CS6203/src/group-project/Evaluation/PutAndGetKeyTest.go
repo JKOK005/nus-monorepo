@@ -19,7 +19,7 @@ func main() {
 	// TODO: Do not let client connect with a defined URL:PORT. Create a service that queries ZK for the details
 	bootstrap_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	bootstrap_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
-	pollTimeOutMs 	:= 5000
+	pollTimeOutMs 	:= 10000
 
 	// Attempt to insert keys
 	for key := 0; key < attempts; key++ {

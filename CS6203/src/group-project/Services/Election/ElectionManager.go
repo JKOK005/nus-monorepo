@@ -1,6 +1,7 @@
 package Election
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	util "group-project/Utils"
 	"math"
@@ -99,12 +100,15 @@ func (e *ElectionManager) startReplicationRoutine() {
 	for {
 		select {
 		case req := <- util.ReplicationChannel.ReqCh:
+			glog.Warning("Replicating key")
 			if e.State != Leader {
 				// Acknowledge if not leader
 				util.ReplicationChannel.RespCh <- true
 			} else {
 				// Else respond with result if slaves have received replication
-				util.ReplicationChannel.RespCh <- coordCli.ReplicateReqs(req)
+				nodeLst, _ 	:= coordCli.GetNodes(e.BaseHashGroup)
+				for _, nodePtr := range nodeLst {fmt.Println(nodePtr)}
+				util.ReplicationChannel.RespCh <- coordCli.ReplicateReqs(nodeLst, req)
 			}
 		default:
 		}
@@ -112,12 +116,17 @@ func (e *ElectionManager) startReplicationRoutine() {
 }
 
 func (e ElectionManager) Start() {
-	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
-	if err != nil {glog.Fatal(err); panic(err)}
+	if cli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup); err != nil {
+		glog.Fatal(err); panic(err)
+	} else {
+		// This is done so that we update the global variable coordCli >_< ...
+		coordCli = cli
+	}
 
 	go e.getTermNoRoutine()
 	go e.setTermNoRoutine()
 	go e.setCycleNoRoutine()
+	go e.startReplicationRoutine()
 
 	for {
 		select {
