@@ -39,6 +39,11 @@ type chordRoutingChannel struct {
 	RespCh	chan ChannelsNodeInfo
 }	// Receives hashgroup as request and returns server closest to the hash
 
+type replicationChannel struct {
+	ReqCh	chan *pb.PutKeyMsg
+	RespCh	chan bool
+}
+
 /*
 Shared channels for all go routines to use for communication
 */
@@ -49,4 +54,5 @@ var (
 	PutKeyChannel 	= &putKeyChannel{ReqCh: make(chan *pb.PutKeyMsg), RespCh: make(chan bool)}
 	GetKeyChannel 	= &getKeyChannel{ReqCh: make(chan string), RespCh: make(chan *pb.GetKeyResp)}
 	ChordRoutingChannel = &chordRoutingChannel{ReqCh: make(chan uint32), RespCh: make(chan ChannelsNodeInfo)}
+	ReplicationChannel = &replicationChannel{ReqCh: make(chan *pb.PutKeyMsg), RespCh: make(chan bool)}
 )
