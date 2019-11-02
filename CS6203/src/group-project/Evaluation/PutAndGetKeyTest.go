@@ -17,13 +17,25 @@ const (
 
 func main() {
 	// TODO: Do not let client connect with a defined URL:PORT. Create a service that queries ZK for the details
+	// Leader address
 	bootstrap_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	bootstrap_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
-	bootstrap_replica_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
-	bootstrap_replica_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 9001))
+
+	// Slave address
+	bootstrap_replica_url 	:= dep.GetEnvStr("REGISTER_LISTENER_SLAVE_DNS", "localhost")
+	bootstrap_replica_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_SLAVE_PORT", 9001))
+
 	pollTimeOutMs 	:= 10000
 
-	// Attempt to insert keys
+	/*
+		Attempt to insert keys into leader and have keys replicate to slave
+		- Client will be spawned to insert a range of keys into the leader
+		- The leader will store all PUT requests and will replicate keys to slaves
+		- Client will assert reads from slave
+
+		Note: 	This setup requires 1 leader listening to in REGISTER_LISTENER_DNS:REGISTER_LISTENER_PORT
+	 			and 1 slave listening to REGISTER_LISTENER_SLAVE_DNS:REGISTER_LISTENER_SLAVE_PORT
+	*/
 	for key := 0; key < attempts; key++ {
 		glog.Infof(fmt.Sprintf("Attempting put key request - key: %d, val: %d", key, key))
 
@@ -43,7 +55,6 @@ func main() {
 		}
 	}
 
-	// Attempt to read keys back
 	for key := 0; key < attempts; key++ {
 		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_replica_url, bootstrap_replica_port), grpc.WithInsecure()); err != nil {
 			glog.Error(err)
