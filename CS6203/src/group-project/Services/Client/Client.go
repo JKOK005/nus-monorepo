@@ -2,12 +2,13 @@ package Client
 
 import (
 	"context"
+	"fmt"
 	"github.com/golang/glog"
 	pb "group-project/Protobuf/Generate"
 	"group-project/Utils"
 )
 
-func (c *Client) locate(key string) Utils.ChannelsNodeInfo {
+func (c *Client) locate(key string) Utils.NodeInfo {
 	/*
 		Determines the hash group the key should be located at via CHORD
 		We first hash the raw key to obtain a hash group number.
@@ -19,12 +20,12 @@ func (c *Client) locate(key string) Utils.ChannelsNodeInfo {
 	return <-Utils.ChordRoutingChannel.RespCh
 }
 
-func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.ChannelsNodeInfo) (*pb.PutKeyResp, error) {
+func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.NodeInfo) (*pb.PutKeyResp, error) {
 	// TODO: Placeholder for forwarding PUT requests to recipient node
 	return nil, nil
 }
 
-func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.ChannelsNodeInfo) (*pb.GetKeyResp, error) {
+func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.NodeInfo) (*pb.GetKeyResp, error) {
 	// TODO: Placeholder for forwarding GET requests to recipient node
 	return nil, nil
 }
@@ -32,6 +33,7 @@ func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.ChannelsNodeInfo)
 func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
 	var isSuccess bool
 	glog.Info("Received request to PUT key")
+	fmt.Println("Put key ", msg)
 	_ = c.locate(msg.Key)
 	if false {
 		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR

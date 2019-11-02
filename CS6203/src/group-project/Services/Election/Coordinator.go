@@ -209,7 +209,7 @@ func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {
 	return err
 }
 
-func (c *Coordinator) replicateReq(req *pb.PutKeyMsg, node *NodeInfo, respCh chan bool) {
+func (c *Coordinator) replicateReq(req *pb.PutKeyMsg, node *util.NodeInfo, respCh chan bool) {
 	/*
 		Issues replication request to a node via GRPC dail
 		Returns request success or fail in channel
@@ -235,7 +235,7 @@ func (c *Coordinator) replicateReq(req *pb.PutKeyMsg, node *NodeInfo, respCh cha
 	respCh <- status
 }
 
-func (c *Coordinator) ReplicateReqs(nodes []*NodeInfo, req *pb.PutKeyMsg) bool {
+func (c *Coordinator) ReplicateReqs(nodes []*util.NodeInfo, req *pb.PutKeyMsg) bool {
 	/*
 		Issues replication calls to all other nodes
 	*/

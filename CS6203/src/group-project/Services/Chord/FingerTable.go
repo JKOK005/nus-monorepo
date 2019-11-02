@@ -140,7 +140,6 @@ func (f *FingerTable) UpdateNodes() {
 		case <-util.ChordUpdateChannel.ReqCh:
 			f.FillTable()
 			util.ChordUpdateChannel.RespCh <-true
-		default:
 		}
 	}
 }
