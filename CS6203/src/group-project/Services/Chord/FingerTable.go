@@ -137,13 +137,9 @@ func (f *FingerTable) UpdateNodes() {
 	*/
 	for {
 		select {
-		case nodeInfo := <-util.ChordUpdateChannel.ReqCh:
+		case <-util.ChordUpdateChannel.ReqCh:
 			f.FillTable()
-			go func() {
-				util.ChordUpdateChannel.RespCh	<-true
-			}()
-			glog.Info(fmt.Sprint("Updated finger table because of ",
-								 nodeInfo))
+			util.ChordUpdateChannel.RespCh <-true
 		default:
 		}
 	}
