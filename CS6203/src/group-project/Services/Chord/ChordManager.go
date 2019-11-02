@@ -100,6 +100,6 @@ func (c ChordManager) Start() {
 	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.NrSuccessors,
 									  c.BaseHashGroup, c.HighestHash)
 	c.FingerTable.FillTable()
-	c.FingerTable.UpdateNodes()
-	c.Routing()
+	go c.FingerTable.UpdateNodes()
+	go c.Routing()
 }
