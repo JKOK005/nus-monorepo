@@ -11,9 +11,9 @@ import (
 )
 
 type FingerTable struct {
-	MyInfo			*util.ChannelsNodeInfo				// Node info
+	MyInfo			*util.NodeInfo				// Node info
 	NrSuccessors	uint32								// Number of entries in finger table
-	Successors		map[uint32]util.ChannelsNodeInfo	// Entries in finger table
+	Successors		map[uint32]util.NodeInfo	// Entries in finger table
 	BaseHashGroup 	uint32								// Base hash number for a group
 	HighestHash		uint32								// Highest possible hash value
 }
@@ -35,12 +35,17 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		return nil, err
 	} else {
 		glog.Infof("Building finger table %s:%d", myAddr, myPort)
-		nodeObj := &util.ChannelsNodeInfo{Addr: myAddr, Port: myPort}
+		nodeObj := &util.NodeInfo{Addr: myAddr, Port: myPort}
 		data, _ := json.Marshal(nodeObj)
 		glog.Info(string(data))
+		err = zookeeperCli.RegisterEphemeralNode(zookeeperCli.
+					PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
+		if err != nil {
+			return nil, err
+		}
 		zkCli = zookeeperCli // Cache client
 		return &FingerTable{MyInfo: nodeObj, NrSuccessors: nrSuccessors,
-							Successors: make(map[uint32]util.ChannelsNodeInfo),
+							Successors: make(map[uint32]util.NodeInfo),
 							BaseHashGroup: baseHashGroup,
 							HighestHash: highestHash}, nil
 	}
@@ -48,7 +53,7 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 
 
 func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
-									successors map[uint32]util.ChannelsNodeInfo) bool {
+									successors map[uint32]util.NodeInfo) bool {
 	/*
 		Iterate through list of baseHashGroups
 		Check if the correct hash is found and add to the successors
@@ -59,7 +64,7 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 									PrependNodePath(fmt.Sprintf("%d", eInt)))
 			nodeData, _ := zkCli.GetNodeValue(zkCli.PrependNodePath(fmt.
 										Sprintf("%d/%s", eInt, nodePath[0])))
-			nodeInfo := new(util.ChannelsNodeInfo)
+			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			successors[eInt] = *nodeInfo
 			return true
@@ -116,10 +121,31 @@ func (f *FingerTable) FillTable() {
 	glog.Info("BaseHashGroups populated: ", baseHashGroupsInt)
 
 	f.chooseSuccessors(baseHashGroupsInt)
+
+	data, _ := json.Marshal(f.MyInfo)
+	glog.Info("Register self in followers: ", string(data))
+	for baseHashGroup, _ := range f.Successors {
+		_ = zkCli.SetNodeValue(zkCli.PrependFollowerPath(fmt.Sprintf("%d",
+														baseHashGroup)), data)
+	}
 }
 
 
-func (f *FingerTable) ServerLeaving(baseHashGroup uint32) {
-	// TODO add new hashgroup to finger table
-	delete(f.Successors, baseHashGroup)
+func (f *FingerTable) UpdateNodes() {
+	/*
+		Routine that constantly checks ChordUpdateChannel.ReqCh
+		If there is a change in servers, the finger table is rebuild
+	*/
+	for {
+		select {
+		case nodeInfo := <-util.ChordUpdateChannel.ReqCh:
+			f.FillTable()
+			go func() {
+				util.ChordUpdateChannel.RespCh	<-true
+			}()
+			glog.Info(fmt.Sprint("Updated finger table because of ",
+								 nodeInfo))
+		default:
+		}
+	}
 }
