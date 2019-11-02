@@ -7,18 +7,13 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	pb "group-project/Protobuf/Generate"
-	"group-project/Utils"
+	util "group-project/Utils"
 	"time"
 )
 
-type NodeInfo struct {
-	Addr string
-	Port uint32
-}
-
 type Coordinator struct {
-	MyInfo 				*NodeInfo
-	NodesInGroup 		[]*NodeInfo
+	MyInfo 				*util.NodeInfo
+	NodesInGroup 		[]*util.NodeInfo
 	PollTimeOutMs 		uint32
 	RefreshTimeMs 		int64
 	LastSyncTimeEpoch 	int64
@@ -27,7 +22,7 @@ type Coordinator struct {
 var (
 	refreshTimeMs = int64(10000)
 	pollTimeOutMs = uint32(5000)
-	zkCli *Utils.SdClient
+	zkCli *util.SdClient
 )
 
 func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coordinator, error) {
@@ -35,12 +30,12 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 	Creates a new Coordinator struct and returns to the user
 	Also initializes node path in Zookeeper
 	*/
-	if zookeeperCli, err := Utils.NewZkClient(); err != nil {
+	if zookeeperCli, err := util.NewZkClient(); err != nil {
 		glog.Error(err)
 		return nil, err
 	} else {
 		glog.Info(fmt.Sprintf("Addr: %s, Port: %d, hash group: %d", myAddr, myPort, baseHashGroup))
-		nodeObj 	:= &NodeInfo{Addr:myAddr, Port:myPort}
+		nodeObj 	:= &util.NodeInfo{Addr:myAddr, Port:myPort}
 		data, _ 	:= json.Marshal(nodeObj)
 		glog.Info(string(data))
 		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
@@ -50,14 +45,14 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 	}
 }
 
-func (c *Coordinator) marshalOne(data []byte)(*NodeInfo, error) {
-	node := new(NodeInfo)
+func (c *Coordinator) marshalOne(data []byte)(*util.NodeInfo, error) {
+	node := new(util.NodeInfo)
 	err := json.Unmarshal(data, node)
 	if err != nil {return nil, err}
 	return node, nil
 }
 
-func (c *Coordinator) GetNodeZk(nodePath string) (*NodeInfo, error) {
+func (c *Coordinator) GetNodeZk(nodePath string) (*util.NodeInfo, error) {
 	/*
 	Returns the node value of a node registered under nodePath
 	*/
@@ -76,7 +71,7 @@ func (c *Coordinator) RefreshNodeList(baseHashGroup uint32) error {
 		glog.Warning(err)
 		return err
 	} else {
-		var nodePtrs []*NodeInfo
+		var nodePtrs []*util.NodeInfo
 		for _, nodePath := range childPaths {
 			if nodePtr, err := c.GetNodeZk(zkCli.PrependNodePath(fmt.Sprintf("%d/%s", baseHashGroup, nodePath))); err != nil {
 				glog.Warning(err)
@@ -89,7 +84,7 @@ func (c *Coordinator) RefreshNodeList(baseHashGroup uint32) error {
 }
 
 
-func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
+func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*util.NodeInfo, error) {
 	/*
 	Returns the addresses of all nodes in the same node group
 
@@ -111,7 +106,7 @@ func (c *Coordinator) GetNodes(baseHashGroup uint32) ([]*NodeInfo, error) {
 	return c.NodesInGroup, nil
 }
 
-func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan bool) {
+func (c *Coordinator) RequestVote(node *util.NodeInfo, termNo uint32, respCh chan bool) {
 	/*
 	Requests a node for voting via gRPC
 	*/
@@ -142,7 +137,7 @@ func (c *Coordinator) RequestVote(node *NodeInfo, termNo uint32, respCh chan boo
 	}
 }
 
-func (c *Coordinator) RequestVotes(nodes []*NodeInfo, termNo uint32) ([]bool, error) {
+func (c *Coordinator) RequestVotes(nodes []*util.NodeInfo, termNo uint32) ([]bool, error) {
 	/*
 	Requests a list of nodes for voting via gRPC
 	*/
@@ -154,7 +149,7 @@ func (c *Coordinator) RequestVotes(nodes []*NodeInfo, termNo uint32) ([]bool, er
 	return voteResp, nil
 }
 
-func (c *Coordinator) IssueHeartbeat(node *NodeInfo, termNo uint32, respCh chan bool) {
+func (c *Coordinator) IssueHeartbeat(node *util.NodeInfo, termNo uint32, respCh chan bool) {
 	/*
 	Issues a heartbeat message to a node
 	*/
@@ -185,7 +180,7 @@ func (c *Coordinator) IssueHeartbeat(node *NodeInfo, termNo uint32, respCh chan 
 	}
 }
 
-func (c *Coordinator) IssueHeartbeats(nodes []*NodeInfo, termNo uint32) ([]bool, error) {
+func (c *Coordinator) IssueHeartbeats(nodes []*util.NodeInfo, termNo uint32) ([]bool, error) {
 	/*
 	Issues heartbeat checks to a list of nodes
 	*/
