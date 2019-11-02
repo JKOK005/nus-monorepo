@@ -7,7 +7,6 @@ import (
 	"github.com/golang/glog"
 )
 
-
 type ChordManager struct {
 	NodeAddr		string			// Node address
 	NodePort		uint32			// Node port

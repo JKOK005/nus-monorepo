@@ -4,6 +4,11 @@ import (
 	pb "group-project/Protobuf/Generate"
 )
 
+type ChannelsNodeInfo struct {
+	Addr string
+	Port uint32
+}
+
 type getTermNoChannel struct {
 	ReqCh 	chan bool
 	RespCh 	chan uint32
