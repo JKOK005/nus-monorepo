@@ -123,10 +123,8 @@ func (f *FingerTable) FillTable() {
 	f.chooseSuccessors(baseHashGroupsInt)
 
 	data, _ := json.Marshal(f.MyInfo)
-	glog.Info("Register self in followers: ", string(data))
 	for baseHashGroup, _ := range f.Successors {
-		_ = zkCli.SetNodeValue(zkCli.PrependFollowerPath(fmt.Sprintf("%d",
-														baseHashGroup)), data)
+	_ = zkCli.RegisterEphemeralNode(zkCli.PrependFollowerPath(fmt.Sprintf("%d/", baseHashGroup)), data)
 	}
 }
 
