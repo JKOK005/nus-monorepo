@@ -203,9 +203,12 @@ func (c *Coordinator) MarkAsLeader(baseHashGroup uint32) error {
 	var err error
 	data, _ 	:= json.Marshal(c.MyInfo)
 	glog.Info("Register as leader: ", string(data))
+
+	// Recompute finger table
+	util.ChordUpdateChannel.ReqCh <- true
 	err = zkCli.SetNodeValue(zkCli.PrependNodePath(fmt.Sprintf("%d", baseHashGroup)), data)
 	err = zkCli.ConstructNodesInPath(zkCli.PrependFollowerPath(fmt.Sprintf("%d", baseHashGroup)), "/", nil)
-	// TODO: Inform all nodes registered under /follower/<hash_no> that it is the new leader
+	<- util.ChordUpdateChannel.RespCh
 	return err
 }
 
