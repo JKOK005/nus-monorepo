@@ -79,7 +79,7 @@ message RecomputeFingerTableMsg {
 }
 
 message RecomputeFingerTableResp {
-    bool isSuccess = 1;
+    bool ack = 1;
 }
 
 service RecomputeFingerTableService {

@@ -70,5 +70,5 @@ func (c *Client) RecomputeFingerTable(ctx context.Context, msg *pb.RecomputeFing
 	*/
 	glog.Info("Received request to recompute finger table")
 	Utils.ChordUpdateChannel.ReqCh <- true
-	return &pb.RecomputeFingerTableResp{IsSuccess: <-Utils.ChordUpdateChannel.RespCh}, nil
+	return &pb.RecomputeFingerTableResp{Ack: <-Utils.ChordUpdateChannel.RespCh}, nil
 }
