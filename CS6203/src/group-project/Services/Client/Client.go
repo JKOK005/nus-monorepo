@@ -60,3 +60,15 @@ func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp,
 	}
 	return resp, nil
 }
+
+func (c *Client) RecomputeFingerTable(ctx context.Context, msg *pb.RecomputeFingerTableMsg) (*pb.RecomputeFingerTableResp, error){
+	/*
+		Exposes service to recompute the finger table
+
+		This is used by external leaders who want to instruct others that something has changed in the hash ring
+		, hence they need to recompute their finger table to remain up to date
+	*/
+	glog.Info("Received request to recompute finger table")
+	Utils.ChordUpdateChannel.ReqCh <- true
+	return &pb.RecomputeFingerTableResp{IsSuccess: <-Utils.ChordUpdateChannel.RespCh}, nil
+}

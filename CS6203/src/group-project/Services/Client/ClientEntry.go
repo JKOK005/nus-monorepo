@@ -24,5 +24,6 @@ func (c Client) Start() {
 	grpcServer := grpc.NewServer()
 	pb.RegisterGetKeyServiceServer(grpcServer, &c)
 	pb.RegisterPutKeyServiceServer(grpcServer, &c)
+	pb.RegisterRecomputeFingerTableServiceServer(grpcServer, &c)
 	grpcServer.Serve(lis)
 }
