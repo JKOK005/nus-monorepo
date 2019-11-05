@@ -35,7 +35,7 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		return nil, err
 	} else {
 		glog.Infof("Building finger table %s:%d", myAddr, myPort)
-		nodeObj := &util.NodeInfo{Addr: myAddr, Port: myPort}
+		nodeObj := &util.NodeInfo{Addr: myAddr, Port: myPort, IsLocal: true}
 		data, _ := json.Marshal(nodeObj)
 		glog.Info(string(data))
 		err = zookeeperCli.RegisterEphemeralNode(zookeeperCli.
@@ -66,6 +66,7 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 										Sprintf("%d/%s", eInt, nodePath[0])))
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
+			nodeInfo.IsLocal = false
 			successors[eInt] = *nodeInfo
 			return true
 		}
