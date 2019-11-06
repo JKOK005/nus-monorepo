@@ -84,8 +84,8 @@ func main () {
 
 	 // Start chord manager
 	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
-	 					   BaseHashGroup: baseHashGroup, NrSuccessors: 3,
-	 					   FingerTable: nil, HighestHash: uint32(10)}.Start()
+	 					   BaseHashGroup: baseHashGroup, FingerTable: nil,
+						   HighestHash: uint32(10)}.Start()
 
 	wg.Wait()
 }
