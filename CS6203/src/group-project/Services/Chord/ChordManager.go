@@ -11,7 +11,6 @@ type ChordManager struct {
 	NodeAddr		string			// Node address
 	NodePort		uint32			// Node port
 	BaseHashGroup	uint32			// Base hash number for a group
-	NrSuccessors	uint32			// Number of entries in finger table
 	FingerTable		*FingerTable	// Struct containing node info of successors
 	HighestHash		uint32			// Highest possible hash value
 }
@@ -93,8 +92,8 @@ func (c *ChordManager) Routing() {
 }
 
 func (c ChordManager) Start() {
-	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.NrSuccessors,
-									  c.BaseHashGroup, c.HighestHash)
+	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.BaseHashGroup,
+									  c.HighestHash)
 	c.FingerTable.FillTable()
 	go c.FingerTable.UpdateNodes()
 	go c.Routing()

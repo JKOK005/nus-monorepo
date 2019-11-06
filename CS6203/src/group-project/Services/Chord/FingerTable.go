@@ -13,9 +13,7 @@ import (
 type FingerTable struct {
 	MyInfo			*util.NodeInfo		// Node info
 	NrSuccessors	uint32				// Number of entries in finger table
-	// Successors		map[uint32]util.NodeInfo	// Entries in finger table
 	Successors		[]util.NodeInfo	// Entries in finger table
-	// BaseHashGroup 	uint32				// Base hash number for a group
 	HighestHash		uint32				// Highest possible hash value
 }
 
@@ -24,9 +22,8 @@ var (
 )
 
 
-func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
-					baseHashGroup uint32, highestHash uint32) (*FingerTable,
-																		error) {
+func NewFingerTable(myAddr string, myPort uint32, baseHashGroup uint32,
+					highestHash uint32) (*FingerTable, error) {
 	/*
 		Creates a new FingerTable struct and returns to the user
 		Also initializes node path in Zookeeper
@@ -47,10 +44,7 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		}
 		zkCli = zookeeperCli // Cache client
 		var emptySuccessors []util.NodeInfo
-		return &FingerTable{MyInfo: nodeObj, NrSuccessors: nrSuccessors,
-							// Successors: make(map[uint32]util.NodeInfo),
-							Successors: emptySuccessors,
-							// BaseHashGroup: baseHashGroup,
+		return &FingerTable{MyInfo: nodeObj, Successors: emptySuccessors,
 							HighestHash: highestHash}, nil
 	}
 }
@@ -70,7 +64,6 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			nodeInfo.IsLocal = false
-			// successors[eInt] = *nodeInfo
 			successors = append(successors, *nodeInfo)
 			return true
 		}
@@ -125,7 +118,8 @@ func (f *FingerTable) FillTable() {
 	sort.Slice(baseHashGroupsInt, func(i,
 		j int) bool { return baseHashGroupsInt[i] < baseHashGroupsInt[j] })
 	glog.Info("BaseHashGroups populated: ", baseHashGroupsInt)
-
+	nrHashGroups := float64(len(baseHashGroupsInt))
+	f.NrSuccessors = uint32((math.Log(nrHashGroups) / math.Log(2)) + 1)
 	f.chooseSuccessors(baseHashGroupsInt)
 
 	data, _ := json.Marshal(f.MyInfo)
