@@ -27,22 +27,22 @@ func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) util.Node
 	var diff uint32
 	var closestSuccessor util.NodeInfo
 
-	for baseHashGroup, successor := range c.FingerTable.Successors {
-		if baseHashGroupSearched >=  baseHashGroup {
-			diff = baseHashGroupSearched - baseHashGroup
+	for _, successor := range c.FingerTable.Successors {
+		if baseHashGroupSearched >=  successor.BaseHashGroup {
+			diff = baseHashGroupSearched - successor.BaseHashGroup
 		} else {
 			// Correct for circular shape of hashing
-			diff = baseHashGroupSearched + (c.HighestHash - baseHashGroup)
+			diff = baseHashGroupSearched + (c.HighestHash - successor.BaseHashGroup)
 		}
 
 		if diff == 0 {
 			// Hash found
-			closestHash = baseHashGroup
+			closestHash = successor.BaseHashGroup
 			glog.Infof(fmt.Sprint("Found hashgroup ", closestHash, " in table"))
 			return successor
 		} else if diff < smallestDiff {
 			// New closest hash found
-			closestHash = baseHashGroup
+			closestHash = successor.BaseHashGroup
 			closestSuccessor = successor
 			glog.Infof(fmt.Sprint("Found closer hash ", closestHash))
 		}
@@ -65,9 +65,9 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	var closestSuccessor util.NodeInfo
 	// Checks its own hash
 	if baseHashGroupSearched == c.BaseHashGroup {
-		glog.Infof("Found hashgroup here")
+		glog.Infof("Hashgroup belongs to this node")
 		nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
-										 IsLocal: true}
+								 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
 		closestSuccessor = nodeObj
 		util.ChordRoutingChannel.RespCh <- closestSuccessor
 	} else {
