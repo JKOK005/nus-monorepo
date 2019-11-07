@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"group-project/Services/Chord"
 	"group-project/Services/Client"
 	"group-project/Services/DB"
 	"group-project/Services/Election"
 	"group-project/Services/Raft"
+	"group-project/Services/Chord"
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
@@ -84,8 +84,8 @@ func main () {
 
 	 // Start chord manager
 	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
-	 					   BaseHashGroup: baseHashGroup, NrSuccessors: 3,
-	 					   FingerTable: nil, HighestHash: uint32(10)}.Start()
+	 					   BaseHashGroup: baseHashGroup, FingerTable: nil,
+						   HighestHash: uint32(10)}.Start()
 
 	wg.Wait()
 }

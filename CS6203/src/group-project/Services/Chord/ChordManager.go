@@ -11,7 +11,6 @@ type ChordManager struct {
 	NodeAddr		string			// Node address
 	NodePort		uint32			// Node port
 	BaseHashGroup	uint32			// Base hash number for a group
-	NrSuccessors	uint32			// Number of entries in finger table
 	FingerTable		*FingerTable	// Struct containing node info of successors
 	HighestHash		uint32			// Highest possible hash value
 }
@@ -27,22 +26,22 @@ func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) util.Node
 	var diff uint32
 	var closestSuccessor util.NodeInfo
 
-	for baseHashGroup, successor := range c.FingerTable.Successors {
-		if baseHashGroupSearched >=  baseHashGroup {
-			diff = baseHashGroupSearched - baseHashGroup
+	for _, successor := range c.FingerTable.Successors {
+		if baseHashGroupSearched >=  successor.BaseHashGroup {
+			diff = baseHashGroupSearched - successor.BaseHashGroup
 		} else {
 			// Correct for circular shape of hashing
-			diff = baseHashGroupSearched + (c.HighestHash - baseHashGroup)
+			diff = baseHashGroupSearched + (c.HighestHash - successor.BaseHashGroup)
 		}
 
 		if diff == 0 {
 			// Hash found
-			closestHash = baseHashGroup
+			closestHash = successor.BaseHashGroup
 			glog.Infof(fmt.Sprint("Found hashgroup ", closestHash, " in table"))
 			return successor
 		} else if diff < smallestDiff {
 			// New closest hash found
-			closestHash = baseHashGroup
+			closestHash = successor.BaseHashGroup
 			closestSuccessor = successor
 			glog.Infof(fmt.Sprint("Found closer hash ", closestHash))
 		}
@@ -63,9 +62,13 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched, " from ", c.BaseHashGroup))
 	var closestSuccessor util.NodeInfo
 	// Checks its own hash
-	if baseHashGroupSearched == c.BaseHashGroup {
-		glog.Infof("Found hashgroup here")
-		closestSuccessor = util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort, IsLocal: true}
+	if baseHashGroupSearched == c.BaseHashGroup ||
+	   baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
+		glog.Infof("Hashgroup belongs to this node")
+		nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
+								 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
+		closestSuccessor = nodeObj
+		util.ChordRoutingChannel.RespCh <- closestSuccessor
 	} else {
 		closestSuccessor = c.searchFingerTable(baseHashGroupSearched)
 	}
@@ -89,8 +92,8 @@ func (c *ChordManager) Routing() {
 }
 
 func (c ChordManager) Start() {
-	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.NrSuccessors,
-									  c.BaseHashGroup, c.HighestHash)
+	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.BaseHashGroup,
+									  c.HighestHash)
 	c.FingerTable.FillTable()
 	go c.FingerTable.UpdateNodes()
 	go c.Routing()
