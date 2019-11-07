@@ -125,7 +125,7 @@ func (f *FingerTable) FillTable() {
 	data, _ := json.Marshal(f.MyInfo)
 	for baseHashGroup, _ := range f.Successors {
 	_ = zkCli.RegisterEphemeralNode(zkCli.PrependFollowerPath(fmt.Sprintf("%d/",
-														baseHashGroup)), data)
+														  baseHashGroup)), data)
 	}
 }
 
@@ -142,7 +142,6 @@ func (f *FingerTable) UpdateNodes() {
 			go func() {
 				util.ChordUpdateChannel.RespCh	<-true
 			}()
-			glog.Info(fmt.Sprint("Updated finger table because of ", nodeInfo))
 		default:
 		}
 	}
