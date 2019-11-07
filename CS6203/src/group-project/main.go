@@ -8,7 +8,6 @@ import (
 	"group-project/Services/DB"
 	"group-project/Services/Election"
 	"group-project/Services/Raft"
-	"group-project/Services/Chord"
 	dep "group-project/Utils"
 	"math/rand"
 	"sync"
@@ -65,7 +64,7 @@ func main () {
 	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
 	startingState 	:= Election.Follower
-	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage"))
+	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage/leader"))
 
 	var wg sync.WaitGroup
 	wg.Add(1)

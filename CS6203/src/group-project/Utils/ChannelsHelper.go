@@ -40,7 +40,12 @@ type chordRoutingChannel struct {
 }	// Receives hashgroup as request and returns server closest to the hash
 
 type chordUpdateChannel struct {
-	ReqCh	chan NodeInfo
+	ReqCh  chan bool
+	RespCh chan bool
+}
+
+type replicationChannel struct {
+	ReqCh	chan *pb.PutKeyMsg
 	RespCh	chan bool
 }
 
@@ -54,5 +59,6 @@ var (
 	PutKeyChannel 	= &putKeyChannel{ReqCh: make(chan *pb.PutKeyMsg), RespCh: make(chan bool)}
 	GetKeyChannel 	= &getKeyChannel{ReqCh: make(chan string), RespCh: make(chan *pb.GetKeyResp)}
 	ChordRoutingChannel = &chordRoutingChannel{ReqCh: make(chan uint32), RespCh: make(chan NodeInfo)}
-	ChordUpdateChannel = &chordUpdateChannel{ReqCh: make(chan NodeInfo), RespCh: make(chan bool)}
+	ChordUpdateChannel = &chordUpdateChannel{ReqCh: make(chan bool), RespCh: make(chan bool)}
+	ReplicationChannel = &replicationChannel{ReqCh: make(chan *pb.PutKeyMsg), RespCh: make(chan bool)}
 )

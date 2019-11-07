@@ -73,3 +73,15 @@ message FingerTableReplicationResp {
 service FingerTableReplicationService {
     rpc ReceiveFingerTable(FingerTableReplicationMsg) returns (FingerTableReplicationResp);
 }
+
+// Finger table recomputation
+message RecomputeFingerTableMsg {
+}
+
+message RecomputeFingerTableResp {
+    bool ack = 1;
+}
+
+service RecomputeFingerTableService {
+    rpc RecomputeFingerTable(RecomputeFingerTableMsg) returns (RecomputeFingerTableResp);
+}

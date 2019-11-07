@@ -89,13 +89,42 @@ func (e *ElectionManager) setCycleNoRoutine() {
 	}
 }
 
+func (e *ElectionManager) startReplicationRoutine() {
+	/*
+		Replicates PUT requests to other nodes only if leader
+
+		We enforce total replication, which means all slaves within the hash group
+		has to acknowledge the replication before we declare it as success
+	*/
+	for {
+		select {
+		case req := <- util.ReplicationChannel.ReqCh:
+			glog.Info("Replicating key")
+			if e.State != Leader {
+				// Acknowledge if not leader
+				util.ReplicationChannel.RespCh <- true
+			} else {
+				// Else respond with result if slaves have received replication
+				nodeLst, _ 	:= coordCli.GetNodes(e.BaseHashGroup)
+				util.ReplicationChannel.RespCh <- coordCli.ReplicateReqs(nodeLst, req)
+			}
+		default:
+		}
+	}
+}
+
 func (e ElectionManager) Start() {
-	coordCli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup)
-	if err != nil {glog.Fatal(err); panic(err)}
+	if cli, err := NewCoordinatorCli(e.NodeAddr, e.NodePort, e.BaseHashGroup); err != nil {
+		glog.Fatal(err); panic(err)
+	} else {
+		// This is done so that we update the global variable coordCli >_< ...
+		coordCli = cli
+	}
 
 	go e.getTermNoRoutine()
 	go e.setTermNoRoutine()
 	go e.setCycleNoRoutine()
+	go e.startReplicationRoutine()
 
 	for {
 		select {

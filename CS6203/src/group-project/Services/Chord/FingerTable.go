@@ -39,7 +39,7 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 		data, _ := json.Marshal(nodeObj)
 		glog.Info(string(data))
 		err = zookeeperCli.RegisterEphemeralNode(zookeeperCli.
-					PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
+					PrependFollowerPath(fmt.Sprintf("%d/", baseHashGroup)), data)
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +50,6 @@ func NewFingerTable(myAddr string, myPort uint32, nrSuccessors uint32,
 							HighestHash: highestHash}, nil
 	}
 }
-
 
 func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 									successors map[uint32]util.NodeInfo) bool {
@@ -138,14 +137,9 @@ func (f *FingerTable) UpdateNodes() {
 	*/
 	for {
 		select {
-		case nodeInfo := <-util.ChordUpdateChannel.ReqCh:
+		case <-util.ChordUpdateChannel.ReqCh:
 			f.FillTable()
-			go func() {
-				util.ChordUpdateChannel.RespCh	<-true
-			}()
-			glog.Info(fmt.Sprint("Updated finger table because of ",
-								 nodeInfo))
-		default:
+			util.ChordUpdateChannel.RespCh <-true
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package Utils
 
 import (
+	"hash/fnv"
 	"os"
 	"strconv"
 	"strings"
@@ -29,4 +30,19 @@ func GetEnvStrSlice(key string, defaultValue []string) []string {
 		return defaultValue
 	}
 	return strings.Split(value, ",")
+}
+
+func GetHashFunction() func(string) uint32 {
+	/*
+		Returns a hash function with implementation as defined
+	*/
+	return func(hashString string) uint32 {
+		/*
+			Applies a hash function over a key
+			Returns the hashed value of the key to represent the hash group it should be assigned to
+		*/
+		h := fnv.New32a()
+		_,_ = h.Write([]byte(hashString))
+		return h.Sum32() % 20
+	}
 }
