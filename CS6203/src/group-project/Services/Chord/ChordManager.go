@@ -63,16 +63,19 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	var closestSuccessor util.NodeInfo
 	nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
 							 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
-	// Checks its own hash
 	if len(c.FingerTable.Successors) == 0 {
 		glog.Infof("Finger table is empty, this node is the only option")
 		closestSuccessor = nodeObj
-		util.ChordRoutingChannel.RespCh <- closestSuccessor
+		go func() {
+			util.ChordRoutingChannel.RespCh <- closestSuccessor
+		}()
+	// Checks its own hash
 	} else if baseHashGroupSearched == c.BaseHashGroup ||
 			  baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
 		glog.Infof("Hashgroup belongs to this node")
-		closestSuccessor = nodeObj
-		util.ChordRoutingChannel.RespCh <- closestSuccessor
+		go func() {
+			util.ChordRoutingChannel.RespCh <- closestSuccessor
+		}()
 	} else {
 		closestSuccessor = c.searchFingerTable(baseHashGroupSearched)
 	}
@@ -87,10 +90,13 @@ func (c *ChordManager) Routing() {
 	for {
 		select {
 		case baseHashGroupSearched := <-util.ChordRoutingChannel.ReqCh:
-			fmt.Println("Route for ", baseHashGroupSearched)
+			glog.Info(fmt.Sprint("Route for ", baseHashGroupSearched))
 			closestSuccessor := c.search(baseHashGroupSearched)
-			fmt.Println("Closest server: ", closestSuccessor)
-			util.ChordRoutingChannel.RespCh <-closestSuccessor
+			glog.Info(fmt.Sprint("Closest server: ", closestSuccessor))
+			go func() {
+				util.ChordRoutingChannel.RespCh <-closestSuccessor
+			}()
+		default:
 		}
 	}
 }
