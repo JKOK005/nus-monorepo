@@ -61,12 +61,16 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	*/
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched, " from ", c.BaseHashGroup))
 	var closestSuccessor util.NodeInfo
+	nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
+							 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
 	// Checks its own hash
-	if baseHashGroupSearched == c.BaseHashGroup ||
-	   baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
+	if len(c.FingerTable.Successors) == 0 {
+		glog.Infof("Finger table is empty, this node is the only option")
+		closestSuccessor = nodeObj
+		util.ChordRoutingChannel.RespCh <- closestSuccessor
+	} else if baseHashGroupSearched == c.BaseHashGroup ||
+			  baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
 		glog.Infof("Hashgroup belongs to this node")
-		nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
-								 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
 		closestSuccessor = nodeObj
 		util.ChordRoutingChannel.RespCh <- closestSuccessor
 	} else {
