@@ -79,13 +79,17 @@ func main () {
 	go Raft.Server{NodeAddr: nodeAddr, NodePort: nodePort}.Start()
 
 	// Start up state manager
-	go Election.ElectionManager{ NodeAddr: nodeAddr, NodePort: nodePort, BaseHashGroup: baseHashGroup, CycleNo: cycleNoStart,
-							 CyclesToTimeout: cyclesToTimeout, CycleTimeMs: cycleTimeMs, State: startingState}.Start()
+	go Election.ElectionManager{NodeAddr: nodeAddr, NodePort: nodePort,
+								BaseHashGroup: baseHashGroup,
+								CycleNo: cycleNoStart,
+							 	CyclesToTimeout: cyclesToTimeout,
+								CycleTimeMs: cycleTimeMs,
+								State: startingState}.Start()
 
-	 // Start chord manager
-	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
-	 					   BaseHashGroup: baseHashGroup, FingerTable: nil,
-						   HighestHash: uint32(10)}.Start()
+	// Start chord manager
+	go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
+	 					  BaseHashGroup: baseHashGroup, FingerTable: nil,
+						  HighestHash: uint32(10)}.Start()
 
 	wg.Wait()
 }
