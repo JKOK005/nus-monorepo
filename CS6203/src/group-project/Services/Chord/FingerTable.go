@@ -13,7 +13,7 @@ import (
 type FingerTable struct {
 	MyInfo			*util.NodeInfo		// Node info
 	NrSuccessors	uint32				// Number of entries in finger table
-	Successors		[]util.NodeInfo	// Entries in finger table
+	Successors		[]util.NodeInfo		// Entries in finger table
 	HighestHash		uint32				// Highest possible hash value
 }
 
