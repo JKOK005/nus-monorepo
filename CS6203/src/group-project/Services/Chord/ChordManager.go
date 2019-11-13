@@ -61,7 +61,7 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	*/
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched, " from ", c.BaseHashGroup))
 	var closestSuccessor util.NodeInfo
-	
+
 	// Checks its own hash
 	if len(c.FingerTable.Successors) == 0 ||
 	   baseHashGroupSearched == c.BaseHashGroup ||
