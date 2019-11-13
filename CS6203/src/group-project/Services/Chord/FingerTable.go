@@ -50,7 +50,7 @@ func NewFingerTable(myAddr string, myPort uint32, baseHashGroup uint32,
 }
 
 func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
-									successors []util.NodeInfo) bool {
+									successors *[]util.NodeInfo) bool {
 	/*
 		Iterate through list of baseHashGroups
 		Check if the correct hash is found and add to the successors
@@ -64,7 +64,7 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			nodeInfo.IsLocal = false
-			successors = append(successors, *nodeInfo)
+			*successors = append(*successors, *nodeInfo)
 			return true
 		}
 	}
@@ -84,12 +84,11 @@ func (f *FingerTable) chooseSuccessors(baseHashGroupsInt []uint32) {
 			if value > f.HighestHash {
 				value = value % f.HighestHash
 			}
-			found = f.findSuccessor(baseHashGroupsInt, value, f.Successors)
+			found = f.findSuccessor(baseHashGroupsInt, value, &f.Successors)
 			value = value + 1
 		}
 	}
-	glog.Info(fmt.Sprint("Successors ", f.Successors, " of ",
-						 f.MyInfo.BaseHashGroup))
+	glog.Info(fmt.Sprint("Successors ", f.Successors, " of ", *f.MyInfo))
 }
 
 
