@@ -35,12 +35,12 @@ func main() {
 		glog.Error(err)
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		client := pb.NewPutKeyServiceClient(conn)
 		defer conn.Close(); defer cancel()
 
 		for key := 0; key < attempts; key++ {
 			glog.Infof(fmt.Sprintf("Attempting put key request - key: %d, val: %d", key, key))
 			startTime := time.Now()
-			client := pb.NewPutKeyServiceClient(conn)
 			if resp, err := client.PutKey(ctx, &pb.PutKeyMsg{Key: strconv.Itoa(key),
 				Val: []byte(strconv.Itoa(key))}); err != nil {
 				panic(err)
