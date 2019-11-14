@@ -34,10 +34,14 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 	var isSuccess bool
 	glog.Info("Received request to PUT key")
 	fmt.Println("Put key ", msg)
-	_ = c.locate(msg.Key)
-	if false {
-		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
-		isSuccess = true
+	routeToNode := c.locate(msg.Key)
+	if !routeToNode.IsLocal {
+		if attempt, err := c.forwardPut(msg, routeToNode); err != nil {
+			glog.Error(err)
+			isSuccess = false
+		} else{
+			isSuccess = attempt.Ack
+		}
 	} else {
 		glog.Info("Received request to PUT key")
 		Utils.PutKeyChannel.ReqCh <- msg
@@ -50,10 +54,15 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
 	var resp *pb.GetKeyResp
 	glog.Info("Received request to GET key")
-	_ = c.locate(msg.Key)
-	if false {
-		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
-		resp = &pb.GetKeyResp{Ack:true, Val:nil}
+	fmt.Println("Get key ", msg)
+	routeToNode := c.locate(msg.Key)
+	if !routeToNode.IsLocal {
+		if attempt, err := c.forwardGet(msg, routeToNode); err != nil {
+			glog.Error(err)
+			resp = &pb.GetKeyResp{Ack:false, Val:nil}
+		} else{
+			resp = attempt
+		}
 	} else {
 		Utils.GetKeyChannel.ReqCh <- msg.Key
 		resp = <-Utils.GetKeyChannel.RespCh
