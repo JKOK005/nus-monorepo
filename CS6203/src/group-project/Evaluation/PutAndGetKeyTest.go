@@ -22,7 +22,7 @@ func main() {
 	bootstrap_replica_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_SLAVE_PORT", 9001))
 
 	const attempts 	= 1000
-	pollTimeOutMs 	:= 10000
+	pollTimeOutMs 	:= 60000
 
 	/*
 		Attempt to insert keys into leader and have keys replicate to slave

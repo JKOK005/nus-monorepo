@@ -26,8 +26,8 @@ func main() {
 	bootstrap_url := dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	bootstrap_port := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
 
-	const attempts int 	= 10000
-	pollTimeOutMs 		:= 10000
+	const attempts int 	= 1000
+	pollTimeOutMs 		:= 100000000000000
 	var totalTime int64 = 0
 
 	// Repeat experiment with 1 / 2 ... N slaves listening to the leader
