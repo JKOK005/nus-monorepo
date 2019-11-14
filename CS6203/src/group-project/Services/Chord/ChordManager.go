@@ -98,5 +98,6 @@ func (c ChordManager) Start() {
 									  c.HighestHash)
 	c.FingerTable.FillTable()
 	go c.FingerTable.UpdateNodes()
+	fmt.Println(c.FingerTable)
 	go c.Routing()
 }

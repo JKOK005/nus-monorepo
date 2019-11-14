@@ -33,6 +33,7 @@ func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.NodeInfo) (*pb.Pu
 		TODO: 	Remove hack for (node.Port +1), since client ports are +1 from port by default
 					Got to think of a better way to communicate with the client moving forward
 	*/
+	fmt.Println("Forwarding put: ", recipient)
 	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", recipient.Addr, recipient.Port +1), grpc.WithInsecure()); err != nil {
 		glog.Error(err)
 		return nil, err
@@ -57,6 +58,7 @@ func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.NodeInfo) (*pb.Ge
 		TODO: 	Remove hack for (node.Port +1), since client ports are +1 from port by default
 					Got to think of a better way to communicate with the client moving forward
 	*/
+	fmt.Println("Forwarding get: ", recipient)
 	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", recipient.Addr, recipient.Port +1), grpc.WithInsecure()); err != nil {
 		glog.Error(err)
 		return nil, err
@@ -77,8 +79,8 @@ func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.NodeInfo) (*pb.Ge
 func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
 	var resp *pb.PutKeyResp
 	glog.Info("Received request to PUT key")
-	fmt.Println("Put key ", msg)
 	routeToNode := c.locate(msg.Key)
+	fmt.Println(routeToNode)
 	if !routeToNode.IsLocal {
 		if attempt, err := c.forwardPut(msg, routeToNode); err != nil {
 			glog.Error(err)
@@ -87,7 +89,7 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 			resp = attempt
 		}
 	} else {
-		glog.Info("Received request to PUT key")
+		fmt.Println("Put key ", msg)
 		Utils.PutKeyChannel.ReqCh <- msg
 		Utils.ReplicationChannel.ReqCh <- msg
 		resp = &pb.PutKeyResp{Ack: <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh}
@@ -98,7 +100,6 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
 	var resp *pb.GetKeyResp
 	glog.Info("Received request to GET key")
-	fmt.Println("Get key ", msg)
 	routeToNode := c.locate(msg.Key)
 	if !routeToNode.IsLocal {
 		if attempt, err := c.forwardGet(msg, routeToNode); err != nil {
@@ -108,6 +109,7 @@ func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp,
 			resp = attempt
 		}
 	} else {
+		fmt.Println("Get key ", msg)
 		Utils.GetKeyChannel.ReqCh <- msg.Key
 		resp = <-Utils.GetKeyChannel.RespCh
 	}
