@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-const (
-	attempts = 500  	// Put attempts
-)
-
 func main() {
 	// TODO: Do not let client connect with a defined URL:PORT. Create a service that queries ZK for the details
 	// Leader address
@@ -25,7 +21,8 @@ func main() {
 	bootstrap_replica_url 	:= dep.GetEnvStr("REGISTER_LISTENER_SLAVE_DNS", "localhost")
 	bootstrap_replica_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_SLAVE_PORT", 9001))
 
-	pollTimeOutMs 	:= 10000
+	const attempts 	= 1000
+	pollTimeOutMs 	:= 60000
 
 	/*
 		Attempt to insert keys into leader and have keys replicate to slave
@@ -36,18 +33,17 @@ func main() {
 		Note: 	This setup requires 1 leader listening to in REGISTER_LISTENER_DNS:REGISTER_LISTENER_PORT
 	 			and 1 slave listening to REGISTER_LISTENER_SLAVE_DNS:REGISTER_LISTENER_SLAVE_PORT
 	*/
-	for key := 0; key < attempts; key++ {
-		glog.Infof(fmt.Sprintf("Attempting put key request - key: %d, val: %d", key, key))
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_url, bootstrap_port), grpc.WithInsecure()); err != nil {
+		glog.Error(err)
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
 
-		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_url, bootstrap_port), grpc.WithInsecure()); err != nil {
-			glog.Error(err)
-		} else {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
-			defer conn.Close(); defer cancel()
-
+		for key := 0; key < attempts; key++ {
+			glog.Infof(fmt.Sprintf("Attempting put key request - key: %d, val: %d", key, key))
 			client := pb.NewPutKeyServiceClient(conn)
 			if resp, err := client.PutKey(ctx, &pb.PutKeyMsg{Key: strconv.Itoa(key),
-															 Val: []byte(strconv.Itoa(key))}); err != nil {
+				Val: []byte(strconv.Itoa(key))}); err != nil {
 				panic(err)
 			} else if resp.Ack != true {
 				glog.Error("Failed to insert key: ", key)
@@ -55,13 +51,13 @@ func main() {
 		}
 	}
 
-	for key := 0; key < attempts; key++ {
-		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_replica_url, bootstrap_replica_port), grpc.WithInsecure()); err != nil {
-			glog.Error(err)
-		} else {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
-			defer conn.Close(); defer cancel()
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_replica_url, bootstrap_replica_port), grpc.WithInsecure()); err != nil {
+		glog.Error(err)
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
 
+		for key := 0; key < attempts; key++ {
 			client := pb.NewGetKeyServiceClient(conn)
 			if resp, err := client.GetKey(ctx, &pb.GetKeyMsg{Key: strconv.Itoa(key)}); err != nil {
 				panic(err)
