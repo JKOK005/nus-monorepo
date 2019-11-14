@@ -63,6 +63,7 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 										Sprintf("%d/%s", eInt, nodePath[0])))
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
+			nodeInfo.BaseHashGroup = eInt
 			if nodeInfo.Port == f.MyInfo.Port {
 				nodeInfo.IsLocal = true
 			} else {
