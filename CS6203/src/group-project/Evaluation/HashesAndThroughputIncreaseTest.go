@@ -33,7 +33,7 @@ func main(){
 
 	for i, p := range(ports) {
 		wg.Add(1)
-
+		
 		nodePort := uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", p))
 		baseHashGroup := uint32(dep.GetEnvInt("HASH_GROUP", hashes[i]))
 		cycleTimeMs := uint32(500 + rand.Intn(500))

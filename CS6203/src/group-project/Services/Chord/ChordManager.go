@@ -1,4 +1,4 @@
-package Chord
+ package Chord
 
 import (
 	util "group-project/Utils"
@@ -67,7 +67,7 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	   baseHashGroupSearched == c.BaseHashGroup ||
 	   baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
 	   	nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
-								BaseHashGroup : c.BaseHashGroup, IsLocal: true}
+								 BaseHashGroup : c.BaseHashGroup, IsLocal: true}
 		closestSuccessor = nodeObj
 		glog.Infof("Hashgroup belongs to this node")
 	} else {
