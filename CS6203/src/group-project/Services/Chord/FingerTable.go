@@ -64,7 +64,8 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			nodeInfo.BaseHashGroup = eInt
-			if nodeInfo.Port == f.MyInfo.Port {
+			if nodeInfo.Port == f.MyInfo.Port &&
+			   nodeInfo.Addr == f.MyInfo.Addr {
 				nodeInfo.IsLocal = true
 			} else {
 				nodeInfo.IsLocal = false
