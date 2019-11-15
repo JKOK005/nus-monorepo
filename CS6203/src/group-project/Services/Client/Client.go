@@ -46,6 +46,7 @@ func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.NodeInfo) (*pb.Pu
 			glog.Error(err)
 			return nil, err
 		} else {
+			resp.Stats.NoOfHops += 1
 			return resp, nil
 		}
 	}
@@ -71,6 +72,7 @@ func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.NodeInfo) (*pb.Ge
 			glog.Error(err)
 			return nil, err
 		} else {
+			resp.Stats.NoOfHops += 1
 			return resp, nil
 		}
 	}
@@ -80,11 +82,10 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 	var resp *pb.PutKeyResp
 	glog.Info("Received request to PUT key")
 	routeToNode := c.locate(msg.Key)
-	fmt.Println(routeToNode)
 	if !routeToNode.IsLocal {
 		if attempt, err := c.forwardPut(msg, routeToNode); err != nil {
 			glog.Error(err)
-			resp = &pb.PutKeyResp{Ack:false}
+			resp = &pb.PutKeyResp{}
 		} else{
 			resp = attempt
 		}
@@ -92,7 +93,8 @@ func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp,
 		fmt.Println("Put key ", msg)
 		Utils.PutKeyChannel.ReqCh <- msg
 		Utils.ReplicationChannel.ReqCh <- msg
-		resp = &pb.PutKeyResp{Ack: <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh}
+		resp = &pb.PutKeyResp{	Ack: <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh,
+								Stats: &pb.MsgStats{NoOfHops:0}}
 	}
 	return resp, nil
 }
@@ -104,7 +106,7 @@ func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp,
 	if !routeToNode.IsLocal {
 		if attempt, err := c.forwardGet(msg, routeToNode); err != nil {
 			glog.Error(err)
-			resp = &pb.GetKeyResp{Ack:false, Val:nil}
+			resp = &pb.GetKeyResp{}
 		} else{
 			resp = attempt
 		}
@@ -112,6 +114,7 @@ func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp,
 		fmt.Println("Get key ", msg)
 		Utils.GetKeyChannel.ReqCh <- msg.Key
 		resp = <-Utils.GetKeyChannel.RespCh
+		resp.Stats = &pb.MsgStats{NoOfHops: 0}
 	}
 	return resp, nil
 }
