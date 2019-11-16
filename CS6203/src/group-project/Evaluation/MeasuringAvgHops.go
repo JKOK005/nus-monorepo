@@ -28,9 +28,10 @@ func main() {
 	bootstrap_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	bootstrap_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
 
-	const attempts 	= 10000
-	pollTimeOutMs 	:= 60000
+	const attempts 	= 1000
+	pollTimeOutMs 	:= 100000000000000
 
+	var totalHops int32 = 0
 	/*
 		Attempt to insert keys into a seed server
 		- Client will be spawned to insert a range of keys into the leader
@@ -52,8 +53,9 @@ func main() {
 			} else if resp.Ack != true {
 				glog.Error("Failed to insert key: ", key)
 			} else {
-				fmt.Println("Hops: ", resp.Stats.NoOfHops)
+				totalHops += resp.Stats.NoOfHops
 			}
 		}
 	}
+	glog.Info("Hops: ", float64(totalHops) / float64(attempts))
 }
