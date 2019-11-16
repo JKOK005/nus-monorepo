@@ -111,7 +111,8 @@ func (s SdClient) GetNodeValue (from_path string) ([]byte, error) {
 
 func (s SdClient) SetNodeValue (from_path string, data []byte) error {
 	/* Sets the node value from from_path */
-	_, err := s.conn.Set(from_path, data, 0)
+	_, err := s.conn.Set(from_path, data, -1)
+	glog.Error(err)
 	return err
 }
 
