@@ -66,7 +66,9 @@ func main () {
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
 	startingState 	:= Election.Follower
 	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC",
-									   fmt.Sprint("./storage/", storage)))
+									   fmt.Sprintf("./storage/%s", *storage)))
+
+	// fmt.Print(fmt.Sprint("\n\n\n\n\n\n\n", fmt.Sprintf("./storage/%s", *storage), "\n\n\n\n\n\n\n"))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
