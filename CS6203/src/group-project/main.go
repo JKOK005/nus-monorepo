@@ -54,6 +54,7 @@ func main () {
 
 	port := flag.Int("port", 8000, "the port of the server, should be an int")
 	hash := flag.Int("hash", 1, "the hash of the server, should be an int")
+	storage := flag.String("storage", "1", "the location of the storage")
 
 	flag.Parse()  // Needed for glog
 
@@ -64,7 +65,8 @@ func main () {
 	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
 	startingState 	:= Election.Follower
-	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage/leader"))
+	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC",
+									   fmt.Sprint("./storage/", storage)))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
