@@ -8,6 +8,7 @@ import (
 	"context"
 	"strconv"
 	"github.com/golang/glog"
+	"go.uber.org/ratelimit"
 	"google.golang.org/grpc"
 	dep "group-project/Utils"
 	pb "group-project/Protobuf/Generate"
@@ -20,7 +21,7 @@ func putKeys(attempts int, pollTimeOutMs int, bootstrap_url string,
 			 bootstrap_ports []uint32, i int, name string) {
 
 	file, err := os.Create(fmt.Sprint("Results/HashesAndThroughputIncreaseTest/",
-									  name, "_", i, ".txt"))
+									  name, "_", i, "?.txt"))
 	if err != nil {
 		panic(err)
 	}
@@ -34,8 +35,8 @@ func putKeys(attempts int, pollTimeOutMs int, bootstrap_url string,
 	var putClient = map[uint32]pb.PutKeyServiceClient{}
 	var getClient = map[uint32]pb.GetKeyServiceClient{}
 	for _, port := range(bootstrap_ports) {
-		conn, _ := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_url,
-										 port), grpc.WithInsecure())
+		conn, _ := grpc.Dial(fmt.Sprintf("%s:%d", bootstrap_url, port),
+							 grpc.WithInsecure())
 		putClient[port] = pb.NewPutKeyServiceClient(conn)
 		getClient[port] = pb.NewGetKeyServiceClient(conn)
 		defer conn.Close()
@@ -43,12 +44,14 @@ func putKeys(attempts int, pollTimeOutMs int, bootstrap_url string,
 
 	file.WriteString("put,")
 
-	delay := time.Second
-	delayChange := delay / time.Duration(attempts)
+	// delay := time.Second
+	// delayChange := delay / time.Duration(attempts)
+	rl := ratelimit.New(10000)
 	for key := 0; key < attempts; key++ {
 		random_port := bootstrap_ports[rand.Intn(len(bootstrap_ports))]
 		client := putClient[random_port]
-		start := time.Now()
+		// start := time.Now()
+		prev := time.Now()
 		glog.Infof(fmt.Sprintf("Attempting put key request - key: %d, val: %d",
 							   key, key))
 		if resp, err := client.PutKey(ctx, &pb.PutKeyMsg{Key: strconv.Itoa(key),
@@ -57,19 +60,22 @@ func putKeys(attempts int, pollTimeOutMs int, bootstrap_url string,
 		} else if resp.Ack != true {
 			glog.Error("Failed to insert key: ", key)
 		}
-		elapsed := time.Since(start)
-		file.WriteString(fmt.Sprint(elapsed, ","))
-		time.Sleep(delay)
-		delay = delay - delayChange
+		now := rl.Take()
+		// elapsed := time.Since(start)
+		file.WriteString(fmt.Sprint(now.Sub(prev), ","))
+		prev = now
+		// time.Sleep(delay)
+		// delay = delay - delayChange
 	}
 
-	file.WriteString("\n get,")
+	file.WriteString("\nget,")
 
-	delay = time.Second
+	// delay = time.Second
 	for key := 0; key < attempts; key++ {
 		random_port := bootstrap_ports[rand.Intn(len(bootstrap_ports))]
 		client := getClient[random_port]
-		start := time.Now()
+		// start := time.Now()
+		prev := time.Now()
 		glog.Infof(fmt.Sprintf("Attempting get key request - key: %d, val: %d",
 							   key, key))
 		if resp, err := client.GetKey(ctx,
@@ -81,10 +87,13 @@ func putKeys(attempts int, pollTimeOutMs int, bootstrap_url string,
 			glog.Infof(fmt.Sprintf("Retrieved key: %d, val: %s", key,
 									string(resp.Val)))
 		}
-		elapsed := time.Since(start)
-		file.WriteString(fmt.Sprint(elapsed, ","))
-		time.Sleep(delay)
-		delay = delay - delayChange
+		now := rl.Take()
+		file.WriteString(fmt.Sprint(now.Sub(prev), ","))
+		prev = now
+		// elapsed := time.Since(start)
+		// file.WriteString(fmt.Sprint(elapsed, ","))
+		// time.Sleep(delay)
+		// delay = delay - delayChange
 	}
 }
 
