@@ -57,20 +57,20 @@ func (f *FingerTable) findSuccessor(baseHashGroupsInt []uint32, value uint32,
 	*/
 	for _, eInt := range baseHashGroupsInt {
 		if eInt == value {
-			nodePath, _ := zkCli.GetNodePaths(zkCli.
-									PrependNodePath(fmt.Sprintf("%d", eInt)))
+			//nodePath, _ := zkCli.GetNodePaths(zkCli.
+			//						PrependNodePath(fmt.Sprintf("%d", eInt)))
 			nodeData, _ := zkCli.GetNodeValue(zkCli.PrependNodePath(fmt.
-										Sprintf("%d/%s", eInt, nodePath[0])))
+										Sprintf("%d", eInt)))
+			//v, _ := zkCli.GetNodeValue(zkCli.PrependNodePath(fmt.Sprintf("%d", eInt)))
 			nodeInfo := new(util.NodeInfo)
 			json.Unmarshal(nodeData, nodeInfo)
 			nodeInfo.BaseHashGroup = eInt
-			if nodeInfo.Port == f.MyInfo.Port &&
-			   nodeInfo.Addr == f.MyInfo.Addr {
-				nodeInfo.IsLocal = true
-			} else {
+			if nodeInfo.Port != f.MyInfo.Port ||
+			   nodeInfo.Addr != f.MyInfo.Addr {
 				nodeInfo.IsLocal = false
+				*successors = append(*successors, *nodeInfo)
 			}
-			*successors = append(*successors, *nodeInfo)
+
 			return true
 		}
 	}
