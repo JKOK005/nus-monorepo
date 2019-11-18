@@ -65,7 +65,7 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	// Checks its own hash
 	if len(c.FingerTable.Successors) == 0 ||
 	   baseHashGroupSearched == c.BaseHashGroup ||
-	   baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup {
+		(baseHashGroupSearched < c.FingerTable.Successors[0].BaseHashGroup && baseHashGroupSearched > c.BaseHashGroup) {
 	   	nodeObj := util.NodeInfo{Addr: c.NodeAddr, Port: c.NodePort,
 								BaseHashGroup : c.BaseHashGroup, IsLocal: true}
 		closestSuccessor = nodeObj
