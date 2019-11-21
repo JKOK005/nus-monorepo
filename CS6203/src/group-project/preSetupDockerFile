@@ -1,0 +1,25 @@
+####### Used to compile the base layer for subsequent builds
+# To be saved as bugsdbinstallation:<version> image
+FROM golang:1.12.7
+LABEL maintainer="Johan Kok <johan@u.nus.edu.sg>"
+
+# Dependency installation
+#Update apt-get
+RUN apt-get update
+RUN apt-get install -y autoconf automake libtool curl make g++ unzip
+
+# RocksDB
+RUN apt-get -y install librocksdb-dev
+
+# Protoc compiler
+ENV PROTOBUF_URL https://github.com/google/protobuf/releases/download/v3.7.1/protobuf-cpp-3.7.1.tar.gz
+RUN curl -L -o /tmp/protobuf.tar.gz $PROTOBUF_URL
+WORKDIR /tmp/
+RUN tar xvzf protobuf.tar.gz
+WORKDIR /tmp/protobuf-3.7.1
+RUN mkdir /export
+RUN ./autogen.sh && \
+    ./configure --prefix=/export && \
+    make -j 3 && \
+    make check && \
+    make install
