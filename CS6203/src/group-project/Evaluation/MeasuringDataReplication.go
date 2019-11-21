@@ -50,7 +50,6 @@ func main() {
 			elapsedTime := time.Since(startTime)
 			totalTime += elapsedTime.Nanoseconds()
 		}
-
 	}
 	glog.Info("Average insertion time: ", totalTime / int64(attempts))
 }

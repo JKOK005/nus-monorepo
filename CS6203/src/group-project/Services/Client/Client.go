@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 	pb "group-project/Protobuf/Generate"
 	"group-project/Utils"
+	"time"
 )
 
 func (c *Client) locate(key string) Utils.NodeInfo {
@@ -20,43 +22,99 @@ func (c *Client) locate(key string) Utils.NodeInfo {
 	return <-Utils.ChordRoutingChannel.RespCh
 }
 
+var (
+	pollTimeOutMs = uint32(5000)
+)
+
 func (c *Client) forwardPut(msg *pb.PutKeyMsg, recipient Utils.NodeInfo) (*pb.PutKeyResp, error) {
-	// TODO: Placeholder for forwarding PUT requests to recipient node
-	return nil, nil
+	/*
+		Forwards a PUT request to the nodes's client port
+
+		TODO: 	Remove hack for (node.Port +1), since client ports are +1 from port by default
+					Got to think of a better way to communicate with the client moving forward
+	*/
+	fmt.Println("Forwarding put: ", recipient)
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", recipient.Addr, recipient.Port +1), grpc.WithInsecure()); err != nil {
+		glog.Error(err)
+		return nil, err
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
+
+		client := pb.NewPutKeyServiceClient(conn)
+		if resp, err := client.PutKey(ctx, msg); err != nil {
+			glog.Error(err)
+			return nil, err
+		} else {
+			resp.Stats.NoOfHops += 1
+			return resp, nil
+		}
+	}
 }
 
 func (c *Client) forwardGet(msg *pb.GetKeyMsg, recipient Utils.NodeInfo) (*pb.GetKeyResp, error) {
-	// TODO: Placeholder for forwarding GET requests to recipient node
-	return nil, nil
+	/*
+		Forwards a GET request to the nodes's client port
+
+		TODO: 	Remove hack for (node.Port +1), since client ports are +1 from port by default
+					Got to think of a better way to communicate with the client moving forward
+	*/
+	fmt.Println("Forwarding get: ", recipient)
+	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", recipient.Addr, recipient.Port +1), grpc.WithInsecure()); err != nil {
+		glog.Error(err)
+		return nil, err
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pollTimeOutMs) * time.Millisecond)
+		defer conn.Close(); defer cancel()
+
+		client := pb.NewGetKeyServiceClient(conn)
+		if resp, err := client.GetKey(ctx, msg); err != nil {
+			glog.Error(err)
+			return nil, err
+		} else {
+			resp.Stats.NoOfHops += 1
+			return resp, nil
+		}
+	}
 }
 
 func (c *Client) PutKey(ctx context.Context, msg *pb.PutKeyMsg) (*pb.PutKeyResp, error) {
-	var isSuccess bool
+	var resp *pb.PutKeyResp
 	glog.Info("Received request to PUT key")
-	fmt.Println("Put key ", msg)
-	_ = c.locate(msg.Key)
-	if false {
-		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
-		isSuccess = true
+	routeToNode := c.locate(msg.Key)
+	if !routeToNode.IsLocal {
+		if attempt, err := c.forwardPut(msg, routeToNode); err != nil {
+			glog.Error(err)
+			resp = &pb.PutKeyResp{}
+		} else{
+			resp = attempt
+		}
 	} else {
-		glog.Info("Received request to PUT key")
+		fmt.Println("Put key ", msg)
 		Utils.PutKeyChannel.ReqCh <- msg
 		Utils.ReplicationChannel.ReqCh <- msg
-		isSuccess = <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh
+		resp = &pb.PutKeyResp{	Ack: <-Utils.PutKeyChannel.RespCh && <-Utils.ReplicationChannel.RespCh,
+								Stats: &pb.MsgStats{NoOfHops:0}}
 	}
-	return &pb.PutKeyResp{Ack:isSuccess}, nil
+	return resp, nil
 }
 
 func (c *Client) GetKey(ctx context.Context, msg *pb.GetKeyMsg) (*pb.GetKeyResp, error) {
 	var resp *pb.GetKeyResp
 	glog.Info("Received request to GET key")
-	_ = c.locate(msg.Key)
-	if false {
-		// TODO: Block to route request to other nodes if CHORD tells us a new address, once @Johnfiesten makes a new PR
-		resp = &pb.GetKeyResp{Ack:true, Val:nil}
+	routeToNode := c.locate(msg.Key)
+	if !routeToNode.IsLocal {
+		if attempt, err := c.forwardGet(msg, routeToNode); err != nil {
+			glog.Error(err)
+			resp = &pb.GetKeyResp{}
+		} else{
+			resp = attempt
+		}
 	} else {
+		fmt.Println("Get key ", msg)
 		Utils.GetKeyChannel.ReqCh <- msg.Key
 		resp = <-Utils.GetKeyChannel.RespCh
+		resp.Stats = &pb.MsgStats{NoOfHops: 0}
 	}
 	return resp, nil
 }

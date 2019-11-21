@@ -41,8 +41,9 @@ func GetHashFunction() func(string) uint32 {
 			Applies a hash function over a key
 			Returns the hashed value of the key to represent the hash group it should be assigned to
 		*/
+		chordSize := uint32(GetEnvInt("CHORD_HASH_SIZE", 4))
 		h := fnv.New32a()
 		_,_ = h.Write([]byte(hashString))
-		return h.Sum32() % 20
+		return h.Sum32() % chordSize +1
 	}
 }

@@ -62,6 +62,7 @@ func main () {
 	baseHashGroup 	:= uint32(dep.GetEnvInt("HASH_GROUP", *hash))
 	cycleNoStart 	:= uint32(dep.GetEnvInt("START_CYCLE_NO", 0))
 	cyclesToTimeout := uint32(dep.GetEnvInt("CYCLES_TO_TIMEOUT", 10))
+	chordSize 		:= uint32(dep.GetEnvInt("CHORD_HASH_SIZE", 4))
 	cycleTimeMs 	:= uint32(500 + rand.Intn(500)) // Generates a random value between 0.5 - 1 sec
 	startingState 	:= Election.Follower
 	dbCli, _ 		:= dep.InitRocksDB(dep.GetEnvStr("STORAGE_LOC", "./storage/leader"))
@@ -85,7 +86,7 @@ func main () {
 	 // Start chord manager
 	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
 	 					   BaseHashGroup: baseHashGroup, FingerTable: nil,
-						   HighestHash: uint32(10)}.Start()
+						   HighestHash: chordSize}.Start()
 
 	wg.Wait()
 }

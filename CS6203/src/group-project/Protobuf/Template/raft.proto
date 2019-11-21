@@ -27,6 +27,11 @@ service heartbeatService {
     rpc HeartbeatCheck(HeartBeatMsg) returns (HeartBeatResp);
 }
 
+// Request statistics
+message MsgStats {
+    int32 noOfHops = 1;
+}
+
 // Key GET / PUT requests
 message PutKeyMsg {
     string key  = 1;
@@ -35,6 +40,7 @@ message PutKeyMsg {
 
 message PutKeyResp {
     bool ack = 1;
+    MsgStats stats = 2;
 }
 
 service PutKeyService {
@@ -48,6 +54,7 @@ message GetKeyMsg {
 message GetKeyResp {
     bool ack    = 1;
     bytes val   = 2;
+    MsgStats stats = 3;
 }
 
 service GetKeyService {
