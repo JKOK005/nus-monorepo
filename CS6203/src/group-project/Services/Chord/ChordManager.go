@@ -13,6 +13,7 @@ type ChordManager struct {
 	BaseHashGroup	uint32			// Base hash number for a group
 	FingerTable		*FingerTable	// Struct containing node info of successors
 	HighestHash		uint32			// Highest possible hash value
+	RefreshInterval int				// Number of second between update of table
 }
 
 func (c *ChordManager) searchFingerTable(baseHashGroupSearched uint32) util.NodeInfo {
@@ -61,7 +62,7 @@ func (c *ChordManager) search(baseHashGroupSearched uint32) util.NodeInfo {
 	*/
 	glog.Infof(fmt.Sprint("Searching for ", baseHashGroupSearched, " from ", c.BaseHashGroup))
 	var closestSuccessor util.NodeInfo
-	
+
 	// Checks its own hash
 	if len(c.FingerTable.Successors) == 0 ||
 	   baseHashGroupSearched == c.BaseHashGroup ||
@@ -95,9 +96,9 @@ func (c *ChordManager) Routing() {
 
 func (c ChordManager) Start() {
 	c.FingerTable, _ = NewFingerTable(c.NodeAddr, c.NodePort, c.BaseHashGroup,
-									  c.HighestHash)
+									  c.HighestHash, c.RefreshInterval)
 	c.FingerTable.FillTable()
 	go c.FingerTable.UpdateNodes()
-	fmt.Println(c.FingerTable)
+	go c.FingerTable.RefreshFingerTable()
 	go c.Routing()
 }

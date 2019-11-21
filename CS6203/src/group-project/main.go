@@ -54,6 +54,7 @@ func main () {
 
 	port := flag.Int("port", 8000, "the port of the server, should be an int")
 	hash := flag.Int("hash", 1, "the hash of the server, should be an int")
+	refresh := flag.Int("refresh", 5, "refresh rate of CHORD")
 
 	flag.Parse()  // Needed for glog
 
@@ -86,7 +87,8 @@ func main () {
 	 // Start chord manager
 	 go Chord.ChordManager{NodeAddr: nodeAddr, NodePort: nodePort,
 	 					   BaseHashGroup: baseHashGroup, FingerTable: nil,
-						   HighestHash: chordSize}.Start()
+						   HighestHash: chordSize,
+						   RefreshInterval: *refresh}.Start()
 
 	wg.Wait()
 }

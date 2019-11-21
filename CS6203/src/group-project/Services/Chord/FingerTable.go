@@ -8,13 +8,15 @@ import (
 	"math"
 	util "group-project/Utils"
 	"github.com/golang/glog"
+	"time"
 )
 
 type FingerTable struct {
 	MyInfo			*util.NodeInfo		// Node info
 	NrSuccessors	uint32				// Number of entries in finger table
-	Successors		[]util.NodeInfo	// Entries in finger table
+	Successors		[]util.NodeInfo		// Entries in finger table
 	HighestHash		uint32				// Highest possible hash value
+	RefreshInterval	int					// Number of second between update of table
 }
 
 var (
@@ -23,7 +25,7 @@ var (
 
 
 func NewFingerTable(myAddr string, myPort uint32, baseHashGroup uint32,
-					highestHash uint32) (*FingerTable, error) {
+					highestHash uint32, interval int) (*FingerTable, error) {
 	/*
 		Creates a new FingerTable struct and returns to the user
 		Also initializes node path in Zookeeper
@@ -45,7 +47,8 @@ func NewFingerTable(myAddr string, myPort uint32, baseHashGroup uint32,
 		zkCli = zookeeperCli // Cache client
 		var emptySuccessors []util.NodeInfo
 		return &FingerTable{MyInfo: nodeObj, Successors: emptySuccessors,
-							HighestHash: highestHash}, nil
+							HighestHash: highestHash,
+							RefreshInterval: interval}, nil
 	}
 }
 
@@ -143,11 +146,20 @@ func (f *FingerTable) UpdateNodes() {
 	for {
 		select {
 		case <-util.ChordUpdateChannel.ReqCh:
+			glog.Info("Updating finger table")
 			f.FillTable()
 			go func() {
 				util.ChordUpdateChannel.RespCh	<-true
 			}()
 		default:
 		}
+	}
+}
+
+func (f *FingerTable) RefreshFingerTable() {
+	for {
+		glog.Info("Refreshing finger table")
+		f.FillTable()
+		time.Sleep(time.Duration(f.RefreshInterval) * time.Second)
 	}
 }
