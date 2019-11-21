@@ -43,6 +43,6 @@ func GetHashFunction() func(string) uint32 {
 		*/
 		h := fnv.New32a()
 		_,_ = h.Write([]byte(hashString))
-		return h.Sum32() % 4 +1
+		return h.Sum32() % 3 +1
 	}
 }
