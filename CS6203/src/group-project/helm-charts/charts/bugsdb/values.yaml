@@ -1,0 +1,27 @@
+# Binds a single clusterIP service to 1 deloyment of BugsDB 
+nodes: 1
+nameOverride:   ""
+fullnameOverride:   ""
+
+deployment:
+  repository: jkok005/bugsdb
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+  replicaCount: 1 # Set this to 1. We want to bind 1 service <-> 1 deployment
+  env:
+    - name:   START_CYCLE_NO
+      value:  0
+    - name:   CYCLES_TO_TIMEOUT
+      value:  10
+    - name:   STORAGE_LOC
+      value:  /app/db/storage
+    - name:   ZK_NODE_PATH
+      value:  nodes
+    - name:   ZK_FOLLOWER_PATH
+      value:  followers
+    - name:   ZK_CONM_TIMEOUT
+      value:  10
+
+service:
+  type: ClusterIP
+  port: 8000

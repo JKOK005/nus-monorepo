@@ -1,0 +1,47 @@
+{{ range $i, $e := until (.Values.nodes | int) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-node{{ $i }}
+  labels:
+    target.worker.node: node{{ $i }}
+spec:
+  replicas: {{ $.Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      target.worker.node: node{{ $i }}
+  template:
+    metadata:
+      labels:
+        target.worker.node: node{{ $i }}
+        app: bugsdb
+    spec:
+      containers:
+        - name: {{ $.Chart.Name }}-node{{ $i }}
+          image: {{ $.Values.deployment.repository }}:{{ $.Values.deployment.tag }}
+          imagePullPolicy: {{ $.Values.deployment.pullPolicy }}
+          env:
+            {{- range $each := $.Values.deployment.env }}
+            - name:   {{ $each.name }}
+              value:  "{{ $each.value }}"
+            {{- end }}
+            - name:   HASH_GROUP
+              value:  "{{ $i }}"
+            - name:   CHORD_HASH_SIZE
+              value:  "{{ $i }}"
+            - name:   CHORD_HASH_SIZE
+              value:  "{{ $i }}"
+            - name:   LISTENER_ADR
+              value:  "localhost"
+            - name:   REGISTER_LISTENER_DNS
+              value:  "service-node{{ $i }}.{{ $.Release.Namespace }}.svc.cluster.local:2181"
+            - name:   REGISTER_LISTENER_PORT
+              value:  "8000"
+            - name:   SERVERS_ZK
+              value:  "service-zookeeper.{{ $.Release.Namespace }}.svc.cluster.local:2181"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+---
+{{ end }}
