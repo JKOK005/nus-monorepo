@@ -32,7 +32,7 @@ spec:
             - name:   CHORD_HASH_SIZE
               value:  "{{ $.Values.nodes }}"
             - name:   LISTENER_ADR
-              value:  "localhost"
+              value:  "0.0.0.0"
             - name:   REGISTER_LISTENER_DNS
               value:  "service-node{{ $indx }}.{{ $.Release.Namespace }}.svc.cluster.local"
             - name:   REGISTER_LISTENER_PORT
