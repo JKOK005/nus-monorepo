@@ -1,23 +1,25 @@
 {{ range $i, $e := until (.Values.nodes | int) }}
+
+{{ $indx := add $i 1 }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deployment-node{{ $i }}
+  name: deployment-node{{ $indx }}
   labels:
-    target.worker.node: node{{ $i }}
+    target.worker.node: node{{ $indx }}
 spec:
   replicas: {{ $.Values.deployment.replicaCount }}
   selector:
     matchLabels:
-      target.worker.node: node{{ $i }}
+      target.worker.node: node{{ $indx }}
   template:
     metadata:
       labels:
-        target.worker.node: node{{ $i }}
+        target.worker.node: node{{ $indx }}
         app: bugsdb
     spec:
       containers:
-        - name: {{ $.Chart.Name }}-node{{ $i }}
+        - name: {{ $.Chart.Name }}-node{{ $indx }}
           image: {{ $.Values.deployment.repository }}:{{ $.Values.deployment.tag }}
           imagePullPolicy: {{ $.Values.deployment.pullPolicy }}
           env:
@@ -26,15 +28,15 @@ spec:
               value:  "{{ $each.value }}"
             {{- end }}
             - name:   HASH_GROUP
-              value:  "{{ $i }}"
+              value:  "{{ $indx }}"
             - name:   CHORD_HASH_SIZE
-              value:  "{{ $i }}"
+              value:  "{{ $indx }}"
             - name:   CHORD_HASH_SIZE
-              value:  "{{ $i }}"
+              value:  "{{ $indx }}"
             - name:   LISTENER_ADR
               value:  "localhost"
             - name:   REGISTER_LISTENER_DNS
-              value:  "service-node{{ $i }}.{{ $.Release.Namespace }}.svc.cluster.local:2181"
+              value:  "service-node{{ $indx }}.{{ $.Release.Namespace }}.svc.cluster.local"
             - name:   REGISTER_LISTENER_PORT
               value:  "8000"
             - name:   SERVERS_ZK
@@ -43,5 +45,7 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+          command: ["/app/main"]
+          args: ["--stderrthreshold=INFO"]
 ---
 {{ end }}

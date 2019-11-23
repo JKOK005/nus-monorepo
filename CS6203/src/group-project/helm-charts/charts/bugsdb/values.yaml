@@ -1,5 +1,5 @@
 # Binds a single clusterIP service to 1 deloyment of BugsDB 
-nodes: 1
+nodes: 3
 nameOverride:   ""
 fullnameOverride:   ""
 
