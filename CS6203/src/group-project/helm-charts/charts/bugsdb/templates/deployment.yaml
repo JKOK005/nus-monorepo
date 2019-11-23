@@ -1,4 +1,4 @@
-{{ range $i, $e := until (.Values.nodes | int) }}
+{{ range $i, $e := until (mul .Values.nodes .Values.replicas | int) }}
 
 {{ $indx := add $i 1 }}
 apiVersion: apps/v1
@@ -28,11 +28,9 @@ spec:
               value:  "{{ $each.value }}"
             {{- end }}
             - name:   HASH_GROUP
-              value:  "{{ $indx }}"
+              value:  "{{ mod $indx $.Values.replicas | add 1 }}"
             - name:   CHORD_HASH_SIZE
-              value:  "{{ $indx }}"
-            - name:   CHORD_HASH_SIZE
-              value:  "{{ $indx }}"
+              value:  "{{ $.Values.nodes }}"
             - name:   LISTENER_ADR
               value:  "localhost"
             - name:   REGISTER_LISTENER_DNS
@@ -43,12 +41,12 @@ spec:
               value:  "service-zookeeper.{{ $.Release.Namespace }}.svc.cluster.local:2181"
           ports:
             - name: server-port
-              containerPort: 8000
+              containerPort: {{ $.Values.service.port }}
               protocol: TCP
             - name: client-port
-              containerPort: 8001
+              containerPort: {{ add $.Values.service.port 1 }}
               protocol: TCP
           command: ["/app/main"]
-          args: ["--stderrthreshold=WARNING"]
+          args: ["--stderrthreshold=INFO"]
 ---
 {{ end }}
