@@ -8,9 +8,15 @@ metadata:
 spec:
   type: {{ $.Values.service.type }}
   ports:
-    - port: {{ $.Values.service.port }}
+    - name: server
+      port: {{ $.Values.service.port }}
       targetPort: 8000
       protocol: TCP
+    - name: client
+      port: {{ add $.Values.service.port 1 }}
+      targetPort: 8001
+      protocol: TCP
+
   selector:
     target.worker.node: node{{ $i }}
 ---

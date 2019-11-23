@@ -23,5 +23,5 @@ deployment:
       value:  10
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8000

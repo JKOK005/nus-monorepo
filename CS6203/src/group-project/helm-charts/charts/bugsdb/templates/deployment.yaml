@@ -42,10 +42,13 @@ spec:
             - name:   SERVERS_ZK
               value:  "service-zookeeper.{{ $.Release.Namespace }}.svc.cluster.local:2181"
           ports:
-            - name: http
+            - name: server-port
               containerPort: 8000
               protocol: TCP
+            - name: client-port
+              containerPort: 8001
+              protocol: TCP
           command: ["/app/main"]
-          args: ["--stderrthreshold=INFO"]
+          args: ["--stderrthreshold=WARNING"]
 ---
 {{ end }}
