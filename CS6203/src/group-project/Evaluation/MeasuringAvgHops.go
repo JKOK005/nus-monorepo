@@ -27,7 +27,7 @@ func main() {
 	// Leader address
 	bootstrap_url 	:= dep.GetEnvStr("REGISTER_LISTENER_DNS", "localhost")
 	//bootstrap_port 	:= uint32(dep.GetEnvInt("REGISTER_LISTENER_PORT", 8001))
-	bootstrap_ports 	:= []uint32{8001, 8101, 8201, 8301, 8401, 8501}
+	bootstrap_ports 	:= []uint32{8001, 8101}
 
 	const attempts 	= 500
 	pollTimeOutMs 	:= 100000000000000
