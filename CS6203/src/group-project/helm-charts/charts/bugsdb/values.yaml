@@ -6,7 +6,7 @@ fullnameOverride:   ""
 deployment:
   repository: jkok005/bugsdb
   tag: 1.0.0
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   replicaCount: 1 # Set this to 1. We want to bind 1 service <-> 1 deployment
   env:
     - name:   START_CYCLE_NO

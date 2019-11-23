@@ -37,4 +37,4 @@ ARG new_dir=/app
 COPY --from=BASELAYER  ${source_dir}/bin/main ${new_dir}/main
 # Set as default port for server
 EXPOSE 8000
-CMD ["sh", "/app/main"]
+CMD ["/app/main"]
