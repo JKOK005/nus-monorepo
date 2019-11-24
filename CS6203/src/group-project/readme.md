@@ -150,7 +150,11 @@ Several run time environment variables need to be defined when creating a BugsDB
 The simplest deployment is a single instance deployment. This consists of a single BugsDB node with no replication to slaves. 
 
 ```go 
+# Standard deployment
 go run main.go
+
+# Or in debug mode
+go run main.go --stderrthreshold=INFO
 ```
 
 #### Scaling hash groups 
