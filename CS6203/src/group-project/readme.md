@@ -241,7 +241,7 @@ Tear down the chart via:
 helm delete deploy-bugsdb --purge
 ```
 
-It is worth noting several [values](/helm-charts/charts/bugsdb/values.yaml) that can be changed during the deployment process. 
+It is worth noting several [values](https://github.com/JKOK005/nus-monorepo/blob/master/CS6203/src/group-project/helm-charts/charts/bugsdb/values.yaml) that can be changed during the deployment process. 
 
 | Name | Description |
 | -------------  | ------------- |
