@@ -205,7 +205,7 @@ The first step is to compile both docker images for BugsDB. The following docker
 
 | Name | Description |
 | -------------  | ------------- |
-| preSetupDockerFile | Base image for building the main BugsDB image. Sets up the environment for RocksDB and gRPC. *Note* Compiling this image will take a long time to try not to modify anything in the image. |
+| preSetupDockerFile | Base image for building the main BugsDB image. Sets up the environment for RocksDB and gRPC. *Note* Compiling this image will take a long time so try not to modify anything in the image. |
 | Dockerfile | BugsDB docker image. Used to generate the binaries for the system. | 
 
 Compiling the docker files is as simple as:
@@ -240,3 +240,30 @@ Tear down the chart via:
 ```shell script
 helm delete deploy-bugsdb --purge
 ```
+
+It is worth noting several [values](/helm-charts/charts/bugsdb/values.yaml) that can be changed during the deployment process. 
+
+| Name | Description |
+| -------------  | ------------- |
+| nodes | Number of hash groups created |
+| replicas | Number of data copies to be maintained. If replica = 2, we will have 1 leader & 1 slave | 
+| service.type | Deployment type of the service. Default is `NodePort` for external access |
+
+#### Scenario 1: Recovery of lost leaders
+
+We start with a deployment of 2 leaders with 1 slave to each of the leader. This means setting `nodes=2`, `replicas=2`
+
+On installing the chart, we note the following pods created using
+``` shell script
+kubectl get pods
+```
+
+Lets inspect 1 the pod `deployment-node2-xxxx` using `kubectl logs deployment-node2-xxxx`
+
+We note that the pod is a leader to `service-node4.default.svc.cluster.local` that is bound to pod `deployment-node4-xxxx`
+
+We confirm this by running `kubectl logs deployment-node4-xxxx`
+
+Now kill pod `deployment-node2-xxxx` and allow our deployment to recreate the same pod. In doing so, `deployment-node4-xxxx` will automatically become the leader and `deployment-node2-xxxx` will now become the slave.
+
+Verify this using `kubectl logs deployment-node4-xxxx`
