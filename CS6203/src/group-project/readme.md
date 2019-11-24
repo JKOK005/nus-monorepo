@@ -194,3 +194,45 @@ go run main.go
 ```
 
 ### Deployments on Docker & Kubernetes
+BugsDB is on Kubernetes !!!!
+
+#### Docker setup
+The first step is to compile both docker images for BugsDB. The following docker images are available:
+
+| Name | Description |
+| -------------  | ------------- |
+| preSetupDockerFile | Base image for building the main BugsDB image. Sets up the environment for RocksDB and gRPC. *Note* Compiling this image will take a long time to try not to modify anything in the image. |
+| Dockerfile | BugsDB docker image. Used to generate the binaries for the system. | 
+
+Compiling the docker files is as simple as:
+``` shell script
+# Compile preSetupDockerFile
+docker build -t <user>/bugsdbinstallation:<version> -f preSetupDockerFile .
+
+# Compile main DockerFile
+docker build -t <user>/bugsdb:<version> -f Dockerfile .
+
+# Optional push
+docker push <user>/bugsdbinstallation:<version>
+docker push <user>/bugsdb:<version> -f Dockerfile .
+```
+*Note* Edit the first line of `Dockerfile` accordingly to point to the pre installation image that was defined, as it currently points to my docker hub id.
+
+In any case, pre compiled images are present in docker hub
+- jkok005/bugsdbinstallation:1.0.0
+- jkok005/bugsdb:1.0.0
+
+#### Helm charts
+Our helm chart released has been tested on `minikube v0.24.1` and `helm v2.16.0`
+
+To launch the chart, ensure that your Kubernetes cluster is ready and Tiller is active (for versions < helm 3.0.0)
+
+Spin up the helm chart via:
+```shell script
+helm install --name deploy-bugsdb helm-charts/
+```
+
+Tear down the chart via:
+```shell script
+helm delete deploy-bugsdb --purge
+```
