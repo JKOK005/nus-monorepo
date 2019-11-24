@@ -1,0 +1,52 @@
+{{ range $i, $e := until (mul .Values.nodes .Values.replicas | int) }}
+
+{{ $indx := add $i 1 }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-node{{ $indx }}
+  labels:
+    target.worker.node: node{{ $indx }}
+spec:
+  replicas: {{ $.Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      target.worker.node: node{{ $indx }}
+  template:
+    metadata:
+      labels:
+        target.worker.node: node{{ $indx }}
+        app: bugsdb
+    spec:
+      containers:
+        - name: {{ $.Chart.Name }}-node{{ $indx }}
+          image: {{ $.Values.deployment.repository }}:{{ $.Values.deployment.tag }}
+          imagePullPolicy: {{ $.Values.deployment.pullPolicy }}
+          env:
+            {{- range $each := $.Values.deployment.env }}
+            - name:   {{ $each.name }}
+              value:  "{{ $each.value }}"
+            {{- end }}
+            - name:   HASH_GROUP
+              value:  "{{ mod $indx $.Values.replicas | add 1 }}"
+            - name:   CHORD_HASH_SIZE
+              value:  "{{ $.Values.nodes }}"
+            - name:   LISTENER_ADR
+              value:  "0.0.0.0"
+            - name:   REGISTER_LISTENER_DNS
+              value:  "service-node{{ $indx }}.{{ $.Release.Namespace }}.svc.cluster.local"
+            - name:   REGISTER_LISTENER_PORT
+              value:  "8000"
+            - name:   SERVERS_ZK
+              value:  "service-zookeeper.{{ $.Release.Namespace }}.svc.cluster.local:2181"
+          ports:
+            - name: server-port
+              containerPort: {{ $.Values.service.port }}
+              protocol: TCP
+            - name: client-port
+              containerPort: {{ add $.Values.service.port 1 }}
+              protocol: TCP
+          command: ["/app/main"]
+          args: ["--stderrthreshold=INFO"]
+---
+{{ end }}

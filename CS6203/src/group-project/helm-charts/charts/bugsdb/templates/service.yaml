@@ -1,0 +1,25 @@
+{{ range $i, $e := until (mul .Values.nodes .Values.replicas | int) }}
+
+{{ $indx := add $i 1 }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-node{{ $indx }}
+  labels:
+    target.worker.node: node{{ $indx }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - name: server
+      port: {{ $.Values.service.port }}
+      targetPort: 8000
+      protocol: TCP
+    - name: client
+      port: {{ add $.Values.service.port 1 }}
+      targetPort: 8001
+      protocol: TCP
+
+  selector:
+    target.worker.node: node{{ $indx }}
+---
+{{ end }}

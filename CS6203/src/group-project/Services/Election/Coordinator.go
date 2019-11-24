@@ -35,9 +35,8 @@ func NewCoordinatorCli(myAddr string, myPort uint32, baseHashGroup uint32) (*Coo
 		return nil, err
 	} else {
 		glog.Info(fmt.Sprintf("Addr: %s, Port: %d, hash group: %d", myAddr, myPort, baseHashGroup))
-		nodeObj 	:= &util.NodeInfo{Addr:myAddr, Port:myPort}
+		nodeObj 	:= &util.NodeInfo{Addr:myAddr, Port:myPort, BaseHashGroup:baseHashGroup}
 		data, _ 	:= json.Marshal(nodeObj)
-		glog.Info(string(data))
 		err 		= zookeeperCli.RegisterEphemeralNode(zookeeperCli.PrependNodePath(fmt.Sprintf("%d/", baseHashGroup)), data)
 		if err != nil {return nil, err}
 		zkCli = zookeeperCli		// Cache client
@@ -111,27 +110,32 @@ func (c *Coordinator) RequestVote(node *util.NodeInfo, termNo uint32, respCh cha
 	Requests a node for voting via gRPC
 	*/
 	glog.Infof("Requesting vote from addr: %s, port: %d", node.Addr, node.Port)
-	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
-		glog.Warning(err)
-		respCh <- false
+	if c.MyInfo.Addr == node.Addr && c.MyInfo.Port == node.Port {
+		glog.Info("Node votes YES for itself")
+		respCh <- true
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
-		defer conn.Close(); defer cancel()
-
-		client := pb.NewVotingServiceClient(conn)
-		resp, err := client.RequestVote(ctx, &pb.RequestForVoteMsg{CandidateTerm: termNo})
-
-		if ctx.Err() == context.DeadlineExceeded {
-			// Request timed out. Report as timeout.
-			glog.Warning("Request timed out: ", ctx.Err())
+		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
+			glog.Warning(err)
 			respCh <- false
 		} else {
-			if err != nil {
-				glog.Warning(err)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
+			defer conn.Close(); defer cancel()
+
+			client := pb.NewVotingServiceClient(conn)
+			resp, err := client.RequestVote(ctx, &pb.RequestForVoteMsg{CandidateTerm: termNo})
+
+			if ctx.Err() == context.DeadlineExceeded {
+				// Request timed out. Report as timeout.
+				glog.Warning("Request timed out: ", ctx.Err())
 				respCh <- false
 			} else {
-				glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
-				respCh <- resp.Ack
+				if err != nil {
+					glog.Warning(err)
+					respCh <- false
+				} else {
+					glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
+					respCh <- resp.Ack
+				}
 			}
 		}
 	}
@@ -154,27 +158,32 @@ func (c *Coordinator) IssueHeartbeat(node *util.NodeInfo, termNo uint32, respCh 
 	Issues a heartbeat message to a node
 	*/
 	glog.Infof("Renewing heartbeat for addr: %s, port: %d", node.Addr, node.Port)
-	if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
-		glog.Warning(err)
-		respCh <- false
+	if c.MyInfo.Addr == node.Addr && c.MyInfo.Port == node.Port {
+		glog.Info("Node hearbeats itself")
+		respCh <- true
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
-		defer conn.Close(); defer cancel()
-
-		client := pb.NewHeartbeatServiceClient(conn)
-		resp, err := client.HeartbeatCheck(ctx, &pb.HeartBeatMsg{TermNo: termNo})
-
-		if ctx.Err() == context.DeadlineExceeded {
-			// Request timed out. Report as timeout.
-			glog.Warning("Request timed out: ", ctx.Err())
+		if conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.Addr, node.Port), grpc.WithInsecure()); err != nil {
+			glog.Warning(err)
 			respCh <- false
 		} else {
-			if err != nil {
-				glog.Warning(err)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.PollTimeOutMs) * time.Millisecond)
+			defer conn.Close(); defer cancel()
+
+			client := pb.NewHeartbeatServiceClient(conn)
+			resp, err := client.HeartbeatCheck(ctx, &pb.HeartBeatMsg{TermNo: termNo})
+
+			if ctx.Err() == context.DeadlineExceeded {
+				// Request timed out. Report as timeout.
+				glog.Warning("Request timed out: ", ctx.Err())
 				respCh <- false
 			} else {
-				glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
-				respCh <- resp.Ack
+				if err != nil {
+					glog.Warning(err)
+					respCh <- false
+				} else {
+					glog.Infof("Received response: %t from addr: %s, port: %d", resp.Ack, node.Addr, node.Port)
+					respCh <- resp.Ack
+				}
 			}
 		}
 	}
